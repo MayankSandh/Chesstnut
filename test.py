@@ -1,8 +1,11 @@
 import pygame
 import sys
 import tkinter as tk
+from operator import add
 
 # Constants
+ME = 1
+
 WIDTH, HEIGHT = 512, 512
 SQUARE_SIZE = WIDTH // 8  # Size of each square
 
@@ -14,7 +17,6 @@ DARK_GREEN = (50, 80, 30)
 IVORY = (255, 247, 228)
 LIGHT_IVORY = (255, 255, 255)
 LIGHT_GREY = (200, 200, 200)
-RED = (255, 0, 0)  # Color for the clicked square
 
 # Create the Pygame window
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -40,40 +42,37 @@ def readFen(fen):
             file_index += 1
         else:
             continue  # Ignore unexpected characters
-    
+    if (not ME):
+        board = flipBoard(board)
     return board
 
 def pawnPromotion(board, row, col):
     root = tk.Tk()
 
     def button_click(board, row, col, num):
-        board[row][col] = num+me*7 + 2
+        board[row][col] = num+ME*7 + 2
         root.destroy()
         
 
-    root.title("Image Dialog")
-    root.geometry("200x200")
+    root.title("Choose Your Promotion!")
+    root.geometry("300x300")
 
     # Load images
-    img_names = [f"pieces_new/{me*7+2}.png", f"pieces_new/{me*7+3}.png", f"pieces_new/{me*7+4}.png", f"pieces_new/{me*7+5}.png"]
+    img_names = [f"pieces_new/{ME*7+2}.png", f"pieces_new/{ME*7+3}.png", f"pieces_new/{ME*7+4}.png", f"pieces_new/{ME*7+5}.png"]
     images = [tk.PhotoImage(file=img) for img in img_names]
 
     # Create buttons with images
     buttons = []
     for i in range(4):
-        button = tk.Button(root, image=images[i], command=lambda idx=i: button_click(board, row, col, idx))
+        button = tk.Button(root, image=images[i], command=lambda idx=i: button_click(board, row, col, idx),width=120, height=120)
         button.grid(row=i // 2, column=i % 2, padx=10, pady=10)
         buttons.append(button)
-
+    board[row][col] = ME*7 + 2
     root.mainloop()
     
-
 # Function to generate the chessboard using the integer array
 def drawSquare(board, row, col, status):
-    if (status == 2):
-        pygame.draw.rect(screen, RED, (col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))  
-    elif (status == 1):
-        print("reached here")
+    if (status == 1):
         color = LIGHT_IVORY if (row + col) % 2 == 0 else LIGHT_GREEN
         pygame.draw.rect(screen, color, (col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
         
@@ -110,7 +109,7 @@ def generateBoard(board):
 
 # Function to flip the chessboard
 def flipBoard(board):
-    flipped_board = [row[::1] for row in board[::-1]]
+    flipped_board = [row[::-1] for row in board[::-1]]
     return flipped_board
 
 # Function to get the square index based on mouse click
@@ -123,12 +122,10 @@ def getSquareFromClick(pos):
 # Piece codes dictionary
 
 
-me = 1
-
-if (me):
-    opponent = 0
+if (ME):
+    OPP = 0
 else:
-    opponent = 1
+    OPP = 1
 
 piece_codes = {
     '1': -1,
@@ -193,64 +190,134 @@ def drawFreeSquares(board, row, col):
                 screen.blit(piece_image, (col * SQUARE_SIZE, row * SQUARE_SIZE))
             except pygame.error as e:
                 print(f"Error loading image '{image_path}': {e}")
+def isValid(board, pos, legal_moves, og_row, og_col):
+    row, col = pos
+    if row == og_row and col == og_col:
+        return True
+    if (row)<8 and (row)>=0 and (col)<8 and (col)>=0:
+        if board[row][col]//7 == OPP:
+            legal_moves.append([row, col])
+            return False        
+        if board[row][col]//7 == ME:
+            return False
+        return True
+        
+    else:
+        return False
+def LegalSqaures(board, row, col):
+    legal_moves = list()
+    if board[row][col]//7 == ME:
+        if board[row][col]%7 == 5: # BISHOP MOVIES
+            directions = ((1,1), (1,-1), (-1,1), (-1,-1))
+            for d in directions:
+                pos = [row, col]
+                while isValid(board, pos, legal_moves, row, col):
+                    print("reached bishop")
+                    legal_moves.append(pos)
+                    pos = list((map(add, pos, d)))
+            print(legal_moves)
 
+        elif board[row][col]%7 == 6: # PAWN MOVES
+            direction = ((-1,0), (-2, 0))
+            direction_attack = (-1,1), (-1,-1)
+            for x,y in direction_attack:
+                if (row+x)<8 and (row+x)>=0 and (col+y)<8 and (col+y)>=0:
+                    if board[row+x][col+y]//7 == OPP:
+                        legal_moves.append([row+x, col+y])
+                        # drawCaptureSquare(board, row+x,col+y)
 
+            x,y = direction[0]
+            if board[x+row][y+col]==-1:
+                legal_moves.append([row+x, col+y])
+            x,y = direction[1]
+            if board[x+row][y+col]==-1 and row == 6:
+                legal_moves.append([row+x, col+y])
+        elif board[row][col]%7 == 3: # ROOK MOVIES
+            directions = ((0,1), (0,-1), (-1,0), (1,0))
+            for d in directions:
+                pos = [row, col]
+                while isValid(board, pos, legal_moves, row, col):
+                    legal_moves.append(pos)
+                    pos = list((map(add, pos, d)))
+            print(legal_moves)
+
+        elif board[row][col]%7 == 2: #  QUEEN MOVIES
+            directions = ((0,1), (0,-1), (-1,0), (1,0))
+            for d in directions:
+                pos = [row, col]
+                while isValid(board, pos, legal_moves, row, col):
+                    legal_moves.append(pos)
+                    pos = list((map(add, pos, d)))
+            directions = ((1,1), (1,-1), (-1,1), (-1,-1))
+            for d in directions:
+                pos = [row, col]
+                while isValid(board, pos, legal_moves, row, col):
+                    print("reached bishop")
+                    legal_moves.append(pos)
+                    pos = list((map(add, pos, d)))
+        elif board[row][col]%7 == 1: # KING MOVES
+            direction = ((0,1), (0,-1), (-1,0), (1,-0), (1,1), (1,-1), (-1,1), (-1,-1))
+            for x,y in direction:
+                if (row+x)<8 and (row+x)>=0 and (col+y)<8 and (col+y)>=0:
+                    if isValid(board, [row+x, col+y], legal_moves, row, col):
+                        legal_moves.append([row+x, col+y])
+                        # drawCaptureSquare(board, row+x,col+y)
+        elif board[row][col]%7 == 4: # KNIGHT MOVES
+            direction = ((2,1), (2,-1), (-1,2), (1,2),(-2,1), (-2,-1), (-1,-2), (1,-2))
+            for x,y in direction:
+                if (row+x)<8 and (row+x)>=0 and (col+y)<8 and (col+y)>=0:
+                    if isValid(board, [row+x, col+y], legal_moves, row, col):
+                        legal_moves.append([row+x, col+y])
+                        # drawCaptureSquare(board, row+x,col+y)
+
+    return legal_moves
+            # drawFreeSquares(board, row+x, col+y)
 def showLegal(board, row, col):
-    print("reached here show legal")
-    generateBoard(board)
-    if (board[row][col]//7 == me and board[row][col]%7 == 6):
-        print("this is a pawn")
-        direction = (me*-1,0)
-        direction_attack = (me*-1,1), (me*-1,-1)
-        for x,y in direction_attack:
-            if (row+x)<8 and (row+x)>=0 and (col+y)<8 and (col+y)>=0:
-                if board[row+x][col+y]//7 == opponent:
-                    drawCaptureSquare(board, row+x,col+y)
-        x,y = direction
-        drawFreeSquares(board, row+x, col+y)
-                    
-            
-
-    
-
-
+    legal_moves = LegalSqaures(board, row, col)
+    for x in legal_moves:
+        if board[x[0]][x[1]]//7 != OPP:
+            print("reached free: ", x[0], x[1])
+            drawFreeSquares(board, x[0], x[1])
+        elif board:
+            print("reached opp: ", x[0], x[1])
+            drawCaptureSquare(board, x[0], x[1])
+                  
 def mouseClickHandler(board, firstClick, row, col, prev_row, prev_col):
-    # if (board[row][col]//7 == me):
+    # if (board[row][col]//7 == ME):
     if (firstClick):
         generateBoard(board)
         drawSquare(chessboard, row, col, 1)
+        print(row, col)
         showLegal(board, row, col)
     else:
-        if (board[row][col]//7 == me):
-            print("clicked my piece again")
+        if (board[row][col]//7 == ME):
             mouseClickHandler(board, 1, row, col, prev_row, prev_col)
-        else:
-            clicked_piece = board[prev_row][prev_col]
-            board[prev_row][prev_col] = -1
-            board[row][col] = clicked_piece
-            print("reached to this unholy place")
-            print(board[row][col]%7,"    ", row)
-            if (board[row][col]%7 == 6 and row == opponent*7):
-                print("PAWN PROMOTION BEGINS!")
-                pawnPromotion(board, row, col)
-            generateBoard(board)
-# else:
-#     generateBoard(board)
-
-# Example FEN string
+        else:          
+            if [row, col] in LegalSqaures(board, prev_row, prev_col):
+                clicked_piece = board[prev_row][prev_col]
+                board[prev_row][prev_col] = -1
+                board[row][col] = clicked_piece
+                if (board[row][col]%7 == 6 and row == 0):
+                    pawnPromotion(board, row, col)
+                generateBoard(board)
+            else:
+                generateBoard(board)
 
 
 
-# example_fen = 'N7/n2p1n2/3R4/Pp5p/1rPp4/3p3k/8/r3RK2 w - - 0 1'
+
+# example_fen = '4QB2/1k6/1Np5/3p4/2p1PN2/2r1pP2/5P2/K2n3q w - - 0 1'
 example_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
-
-# Create the chessboard array based on FEN notation
 chessboard = readFen(example_fen)
-print(chessboard)
-# Main loop
-running = True
 generateBoard(chessboard)
 
+
+
+
+
+
+# Main loop
+running = True
 firstClick = 1
 clickedPiece = 0
 prev_row, prev_col = 0, 0
@@ -265,30 +332,17 @@ while running:
                 row, col = clicked_square
 
                 if (firstClick == 1):
-                    if (chessboard[row][col]//7 != me):
+                    if (chessboard[row][col]//7 != ME):
                         continue
                     prev_row, prev_col = row, col
                     mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col)
                     clickedPiece = chessboard[row][col]
-                    print("first click occurs")
                     firstClick = 0
 
                 else:
                     mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col)
-                    print("second click occurs")
                     firstClick = 1
-                # Get the mouse click coordinates and square
-                # print(f"Mouse clicked at square: {clicked_square}")
-                
 
-    # Generate the chessboard using the generated array
-
-    # Highlight the clicked square (if exists)
-    if 'clicked_square' in locals():
-        row, col = clicked_square
-        # pygame.draw.rect(screen, RED, (col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
-        # drawSquare(chessboard, row, col, 1)
-    
     pygame.display.flip()
 
 pygame.quit()

@@ -15,3 +15,13 @@ hide the legal moves
 create a different header file for storing functionsd involving logic
 
 non board flipping constants in pawn promotion checking and other places
+
+optimise isLegal function if possible
+
+repititions in legal_moves
+
+first moves of pawn
+
+mysteriosly some pawns do not move
+
+check and checkmate and stalemate handler and draw handler
