@@ -1,0 +1,17 @@
+the module differentiator won't definitely work as black//7 and non//7 are equal
+mouseClickHandler should work more strictly with legal moves allowed function
+enpassant
+make code more readable (like isSlidingPiece, isMe, isOpponent)
+make sure moves stay in the bounds of the board
+
+dots for the legal moves
+
+circle for capture move
+
+preprocessing directions
+
+hide the legal moves
+
+create a different header file for storing functionsd involving logic
+
+non board flipping constants in pawn promotion checking and other places
