@@ -2,9 +2,9 @@ import pygame
 import sys
 import tkinter as tk
 from operator import add
-from utils import graphics, computer
+import graphics
 from copy import deepcopy
-
+from time import sleep
 import time
 
 # Constants
@@ -123,41 +123,47 @@ chessboard = readFen(example_fen)
 graphics.generateBoard(chessboard, screen)
 
 
-def computerMove(board, opp):
-    move_list = list()
-    for row in range(8):
-        for col in range(8):
-            if board[row][col] // 7 == opp:
-                for move in graphics.LegalSquares(board, row, col, currentTurn):
-                    move_list.append([move[0], move[1], row, col])
-    new_board = deepcopy(board)
-    if opp == 1:
-        bestEval = -999999
-    else:
-        bestEval = 999999
-    for move in move_list:
-        makeMove(new_board, move[0], move[1], move[2], move[3])
-        # displayGird(new_board, depth, currentTurn, move, board)
-        if opp == 0:
-            if computer.evaluateBoard(new_board)<=bestEval:
-                bestEval = computer.evaluateBoard(new_board)
-                bestMove = move
-        else:
-            if computer.evaluateBoard(new_board)>=bestEval:
-                bestMove = move
-                bestEval = computer.evaluateBoard(new_board)
-        new_board = deepcopy(board)
-    makeMove(new_board, bestMove[0], bestMove[1], bestMove[2], bestMove[3])
-    graphics.generateBoard(new_board, screen)
-    print("Current Evaluation: ",computer.evaluateBoard(new_board))
-    return new_board
-    
+def computerMove(board):
+    end_pos = [0, 0]
+    return end_pos
+
+def printMoveInWords(board, move, prev_board):
+    prev_coord = [move[2], move[3]]
+    final_coord = [move[0], move[1]]
+    color = "Black" if board[final_coord[0]][final_coord[1]] //7 == 0 else "White"
+    piece = ""
+    if board[final_coord[0]][final_coord[1]]%7 == 6:
+        piece = "pawn"
+    elif board[final_coord[0]][final_coord[1]]%7 == 5:
+        piece = "bishop"
+    elif board[final_coord[0]][final_coord[1]]%7 == 4:
+        piece = "knight"
+    elif board[final_coord[0]][final_coord[1]]%7 == 3:
+        piece = "rook"
+    elif board[final_coord[0]][final_coord[1]]%7 == 2:
+        piece = "queen"
+    elif board[final_coord[0]][final_coord[1]]%7 == 1:
+        piece = "king"
+    message = color + " " + piece + " moved from " + str(prev_coord) + " to " + str(final_coord)
+    print(message)
+    # capture_message = "Capture Occurs: Piece Capture is" + prev_board[prev_coord[0]][prev_coord[1]] 
 
 
 
-
-
-
+def displayGird(board, depth, currentTurn, move, prev_board):
+    print("Depth is: ", depth, " | Current turn is: ", currentTurn)
+    for i in range(8):
+        for j in range(8):
+            if board[i][j] == -1:
+                print(-1, " ", end="")
+                continue
+            if board[i][j]<10:
+                print("", board[i][j], " ", end = "")
+            else:
+                print(board[i][j], " ", end = "")
+        print()
+    printMoveInWords(board, move, prev_board)
+    print("\n\n")
 
 
 def moveGenerationTest(board, depth, currentTurn, move, prev_board):
@@ -198,29 +204,33 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if not (currentTurn ^ graphics.ME):
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:  # Check for left mouse button click
-                    click_pos = pygame.mouse.get_pos()
-                    clicked_square = getSquareFromClick(click_pos)
-                    row, col = clicked_square
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:  # Check for left mouse button click
+                print("THE STARTING BOARD ARRANGEMENT:-\n")
+                move = [1,1,1,1]
+                displayGird(chessboard, 1, currentTurn, move, chessboard)
+                start_time = time.time()
+                print(moveGenerationTest(chessboard, 5, currentTurn, move, chessboard))
+                print("--- %s seconds ---" % (time.time() - start_time))
+                running = False
+                click_pos = pygame.mouse.get_pos()
+                clicked_square = getSquareFromClick(click_pos)
+                row, col = clicked_square
 
-                    if (firstClick == 1):
-                        if (chessboard[row][col]//7 != currentTurn):
-                            continue
-                        prev_row, prev_col = row, col
-                        mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col, currentTurn)
-                        firstClick = 0
+                if (firstClick == 1):
+                    print("first click reached")
+                    if (chessboard[row][col]//7 != currentTurn):
+                        continue
+                    prev_row, prev_col = row, col
+                    mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col, currentTurn)
+                    firstClick = 0
+                    print("first click is now zero")
 
-                    else:
-                        currentTurn = mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col, currentTurn)
-                        firstClick = 1
-        else:
-            chessboard = computerMove(chessboard, graphics.OPP)
-            if currentTurn:
-                currentTurn = False
-            else:
-                currentTurn = True
+                else:
+                    print("zero branch reachedS")
+                    currentTurn = mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col, currentTurn)
+                    firstClick = 1
+            
 
     pygame.display.flip()
 

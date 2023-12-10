@@ -2,9 +2,10 @@ import pygame
 import sys
 import tkinter as tk
 from operator import add
-from utils import graphics, computer
+import graphics
 from copy import deepcopy
-
+from time import sleep
+import computer
 import time
 
 # Constants

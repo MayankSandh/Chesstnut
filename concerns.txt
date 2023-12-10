@@ -25,3 +25,30 @@ first moves of pawn
 mysteriosly some pawns do not move
 
 check and checkmate and stalemate handler and draw handler
+
+change color from light ivory to light green/lemon
+
+heat maps for each piece
+
+implement king safety
+
+(DONE) implement castling
+    (DONE)  Neither the king nor the rook has previously moved.
+    (DONE)  There are no pieces between the king and the rook.
+    (DONE)  The king is not currently in check.
+    (DONE)  The king does not pass through or finish on a square that is attacked by an enemy piece.
+
+    
+
+New Game Button - Reset Board
+
+Instead of looping over the entire board, keep track of all the pieces
+
+how to check for checks
+    if the best move of opponent leads to capture of king, then it is check ()
+
+heat map and evaluation points for king
+
+block a check, pinned piece
+
+code for the other side to play as well

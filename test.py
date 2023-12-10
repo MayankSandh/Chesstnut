@@ -2,7 +2,8 @@ import pygame
 import sys
 import tkinter as tk
 from operator import add
-
+from copy import copy, deepcopy
+from time import sleep
 # Constants
 ME = 1
 
@@ -22,12 +23,15 @@ LIGHT_GREY = (200, 200, 200)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Chess Board')
 
+if (ME):
+    OPP = 0
+else:
+    OPP = 1
+
 # Function to create an integer array representing the chessboard based on FEN notation
 def readFen(fen):
     board = [[-1] * 8 for _ in range(8)]  # Initialize the chessboard with zeros
-
     fen = fen.split(' ')[0]  # Remove additional FEN information after the board position
-
     rank_index = 0  # Start from index 0 to properly populate the board
     file_index = 0
     for char in fen:
@@ -45,34 +49,10 @@ def readFen(fen):
     if (not ME):
         board = flipBoard(board)
     return board
-
-def pawnPromotion(board, row, col):
-    root = tk.Tk()
-
-    def button_click(board, row, col, num):
-        board[row][col] = num+ME*7 + 2
-        root.destroy()
-        
-
-    root.title("Choose Your Promotion!")
-    root.geometry("300x300")
-
-    # Load images
-    img_names = [f"pieces_new/{ME*7+2}.png", f"pieces_new/{ME*7+3}.png", f"pieces_new/{ME*7+4}.png", f"pieces_new/{ME*7+5}.png"]
-    images = [tk.PhotoImage(file=img) for img in img_names]
-
-    # Create buttons with images
-    buttons = []
-    for i in range(4):
-        button = tk.Button(root, image=images[i], command=lambda idx=i: button_click(board, row, col, idx),width=120, height=120)
-        button.grid(row=i // 2, column=i % 2, padx=10, pady=10)
-        buttons.append(button)
-    board[row][col] = ME*7 + 2
-    root.mainloop()
     
 # Function to generate the chessboard using the integer array
-def drawSquare(board, row, col, status):
-    if (status == 1):
+def drawSquare(board, row, col, highlight_status):
+    if (highlight_status == 1):
         color = LIGHT_IVORY if (row + col) % 2 == 0 else LIGHT_GREEN
         pygame.draw.rect(screen, color, (col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
         
@@ -120,12 +100,62 @@ def getSquareFromClick(pos):
     return row, col
 
 # Piece codes dictionary
+KingMoved = False
+LeftRookMoved = False
+RightRookMoved = False
 
+def isKingSafe(board, pos):
+    row, col = pos
+    return True # for now
 
-if (ME):
-    OPP = 0
-else:
-    OPP = 1
+def isLeftCastlingPossible(board):
+    global KingMoved
+    global LeftRookMoved
+    if (board[7][0]%7!=3):
+        return False
+    if (KingMoved or LeftRookMoved): # and isKingSafe(board, [7,2]) and isKingSafe(board, [7, 3])   # waste WTAF IS THIS ERROR!! 
+        return False
+    if (ME):
+        if (not isKingSafe(board, [7,4]) or not isKingSafe(board, [7,3]) or not isKingSafe(board, [7,2])):
+            return False
+        else:
+            for i in range(1,4):
+                if board[7][i]!= -1: # waste computation isKingSafe can be brought here
+                    return False
+            return True 
+    else:
+        if (not isKingSafe(board, [7,1]) or not board, [7,2] or not board, [7,3]):
+            return False
+        else:
+            for i in range(1,3):
+                if board[7][i]!= -1: # waste computation isKingSafe can be brought here
+                    return False
+            return True            
+
+def isRightCastlingPossible(board):
+    global KingMoved
+    global RightRookMoved
+    if (board[7][7]%7!=3):
+        return False
+    if ((KingMoved or RightRookMoved)):
+        return False
+    if (ME):
+        if (not isKingSafe(board, [7,4]) or not isKingSafe(board, [7,5]) or not isKingSafe(board, [7,6])):
+            return False # waste computation
+        else:
+            for i in range(5,7):
+                if board[7][i] != -1:
+                    return False
+            return True
+        
+    else:
+        if (not isKingSafe(board, [7,3]) or not isKingSafe(board, [7,4]) or not isKingSafe(board, [7,5])):
+            return False # waste computation
+        else:
+            for i in range(3,6):
+                if board[7][i] != -1:
+                    return False
+            return True
 
 piece_codes = {
     '1': -1,
@@ -142,6 +172,28 @@ piece_codes = {
     'B': 12, # white bishop
     'P': 13  # white pawn
 }
+
+def pawnPromotion(board, row, col):
+    root = tk.Tk()
+    def button_click(board, row, col, num):
+        board[row][col] = num+ME*7 + 2
+        root.destroy()
+    root.title("Choose Your Promotion!")
+    root.geometry("300x300")
+
+    # Load images
+    img_names = [f"pieces_new/{ME*7+2}.png", f"pieces_new/{ME*7+3}.png", f"pieces_new/{ME*7+4}.png", f"pieces_new/{ME*7+5}.png"]
+    images = [tk.PhotoImage(file=img) for img in img_names]
+
+    # Create buttons with images
+    buttons = []
+    for i in range(4):
+        button = tk.Button(root, image=images[i], command=lambda idx=i: button_click(board, row, col, idx),width=120, height=120)
+        button.grid(row=i // 2, column=i % 2, padx=10, pady=10)
+        buttons.append(button)
+    board[row][col] = ME*7 + 2
+    root.mainloop()
+
 def drawCaptureSquare(board, row, col):
     base_color = IVORY if (row + col) % 2 == 0 else GREEN
     pygame.draw.rect(screen, base_color, (col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
@@ -190,39 +242,47 @@ def drawFreeSquares(board, row, col):
                 screen.blit(piece_image, (col * SQUARE_SIZE, row * SQUARE_SIZE))
             except pygame.error as e:
                 print(f"Error loading image '{image_path}': {e}")
-def isValid(board, pos, legal_moves, og_row, og_col):
+def isValid(board, pos, legal_moves, og_row, og_col, color):
+    if color:
+        oppo = False
+    else:
+        oppo = True
     row, col = pos
     if row == og_row and col == og_col:
         return True
     if (row)<8 and (row)>=0 and (col)<8 and (col)>=0:
-        if board[row][col]//7 == OPP:
+        if board[row][col]//7 == oppo:
             legal_moves.append([row, col])
             return False        
-        if board[row][col]//7 == ME:
+        if board[row][col]//7 == color:
             return False
         return True
         
     else:
         return False
-def LegalSqaures(board, row, col):
+def LegalSquares(board, row, col, color):
+    if color:
+        oppo = False
+        mult = -1
+    else:
+        oppo = True
+        mult = 1
     legal_moves = list()
-    if board[row][col]//7 == ME:
+    if board[row][col]//7 == color:
         if board[row][col]%7 == 5: # BISHOP MOVIES
             directions = ((1,1), (1,-1), (-1,1), (-1,-1))
             for d in directions:
                 pos = [row, col]
-                while isValid(board, pos, legal_moves, row, col):
-                    print("reached bishop")
+                while isValid(board, pos, legal_moves, row, col, color):
                     legal_moves.append(pos)
                     pos = list((map(add, pos, d)))
-            print(legal_moves)
-
         elif board[row][col]%7 == 6: # PAWN MOVES
-            direction = ((-1,0), (-2, 0))
-            direction_attack = (-1,1), (-1,-1)
+            print("white pawn pressed")
+            direction = ((mult*1,0), (mult*2, 0))
+            direction_attack = (mult*1,mult*1), (mult*1,mult*1)
             for x,y in direction_attack:
                 if (row+x)<8 and (row+x)>=0 and (col+y)<8 and (col+y)>=0:
-                    if board[row+x][col+y]//7 == OPP:
+                    if board[row+x][col+y]//7 == oppo:
                         legal_moves.append([row+x, col+y])
                         # drawCaptureSquare(board, row+x,col+y)
 
@@ -236,112 +296,275 @@ def LegalSqaures(board, row, col):
             directions = ((0,1), (0,-1), (-1,0), (1,0))
             for d in directions:
                 pos = [row, col]
-                while isValid(board, pos, legal_moves, row, col):
+                while isValid(board, pos, legal_moves, row, col, color):
                     legal_moves.append(pos)
                     pos = list((map(add, pos, d)))
-            print(legal_moves)
-
         elif board[row][col]%7 == 2: #  QUEEN MOVIES
             directions = ((0,1), (0,-1), (-1,0), (1,0))
             for d in directions:
                 pos = [row, col]
-                while isValid(board, pos, legal_moves, row, col):
+                while isValid(board, pos, legal_moves, row, col, color):
                     legal_moves.append(pos)
                     pos = list((map(add, pos, d)))
             directions = ((1,1), (1,-1), (-1,1), (-1,-1))
             for d in directions:
                 pos = [row, col]
-                while isValid(board, pos, legal_moves, row, col):
-                    print("reached bishop")
+                while isValid(board, pos, legal_moves, row, col, color):
                     legal_moves.append(pos)
                     pos = list((map(add, pos, d)))
         elif board[row][col]%7 == 1: # KING MOVES
             direction = ((0,1), (0,-1), (-1,0), (1,-0), (1,1), (1,-1), (-1,1), (-1,-1))
             for x,y in direction:
                 if (row+x)<8 and (row+x)>=0 and (col+y)<8 and (col+y)>=0:
-                    if isValid(board, [row+x, col+y], legal_moves, row, col):
+                    if isValid(board, [row+x, col+y], legal_moves, row, col, color):
                         legal_moves.append([row+x, col+y])
                         # drawCaptureSquare(board, row+x,col+y)
+
+            if isLeftCastlingPossible(board):
+                legal_moves.append([7,2])
+            if isRightCastlingPossible(board):
+                legal_moves.append([7,5])                    
         elif board[row][col]%7 == 4: # KNIGHT MOVES
             direction = ((2,1), (2,-1), (-1,2), (1,2),(-2,1), (-2,-1), (-1,-2), (1,-2))
             for x,y in direction:
                 if (row+x)<8 and (row+x)>=0 and (col+y)<8 and (col+y)>=0:
-                    if isValid(board, [row+x, col+y], legal_moves, row, col):
+                    if isValid(board, [row+x, col+y], legal_moves, row, col, color):
                         legal_moves.append([row+x, col+y])
                         # drawCaptureSquare(board, row+x,col+y)
-
+    while ([row, col] in legal_moves):
+        legal_moves.remove([row,col])
     return legal_moves
             # drawFreeSquares(board, row+x, col+y)
 def showLegal(board, row, col):
-    legal_moves = LegalSqaures(board, row, col)
+    legal_moves = LegalSquares(board, row, col)
     for x in legal_moves:
         if board[x[0]][x[1]]//7 != OPP:
-            print("reached free: ", x[0], x[1])
             drawFreeSquares(board, x[0], x[1])
         elif board:
-            print("reached opp: ", x[0], x[1])
             drawCaptureSquare(board, x[0], x[1])
-                  
-def mouseClickHandler(board, firstClick, row, col, prev_row, prev_col):
+def makeMove(board, row, col, prev_row, prev_col): 
+    clicked_piece = board[prev_row][prev_col]
+    board[prev_row][prev_col] = -1
+    board[row][col] = clicked_piece  
+def mouseClickHandler(board, firstClick, row, col, prev_row, prev_col, color):
+    global KingMoved
+    global LeftRookMoved
+    global RightRookMoved
     # if (board[row][col]//7 == ME):
     if (firstClick):
         generateBoard(board)
         drawSquare(chessboard, row, col, 1)
-        print(row, col)
-        showLegal(board, row, col)
+        showLegal(board, row, col, color)
     else:
-        if (board[row][col]//7 == ME):
-            mouseClickHandler(board, 1, row, col, prev_row, prev_col)
+        if (board[row][col]//7 == color):
+            mouseClickHandler(board, 1, row, col, prev_row, prev_col, color)
         else:          
-            if [row, col] in LegalSqaures(board, prev_row, prev_col):
-                clicked_piece = board[prev_row][prev_col]
-                board[prev_row][prev_col] = -1
-                board[row][col] = clicked_piece
+            if [row, col] in LegalSquares(board, prev_row, prev_col, color):
+                makeMove(board, row, col, prev_row, prev_col)
                 if (board[row][col]%7 == 6 and row == 0):
                     pawnPromotion(board, row, col)
+                elif (board[row][col]%7 == 1):
+                    KingMoved = True
+                    if [row, col] == [7,2]:
+                        clicked_piece = board[7][0] # waste access
+                        board[7][0] = -1
+                        board[7][3] = clicked_piece
+                    elif [row, col] == [7,5]:
+                        clicked_piece = board[7][7] # waste access
+                        board[7][7] = -1
+                        board[7][4] = clicked_piece
+                elif (board[row][col]%7 == 3):
+                    if (prev_col == 0):
+                        LeftRookMoved = True
+                    else:
+                        RightRookMoved = True
                 generateBoard(board)
             else:
                 generateBoard(board)
-
-
-
+def playComputerMove(board):
+    print(knight_heatmap[5][5])
+    print("computer played its move")
+    pass
 
 # example_fen = '4QB2/1k6/1Np5/3p4/2p1PN2/2r1pP2/5P2/K2n3q w - - 0 1'
-example_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
+example_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1' # starting position in the board
 chessboard = readFen(example_fen)
 generateBoard(chessboard)
 
+def WhiteMatesBlack(board):
+    return False
+def BlackMatesWhite(board):
+    return False
+def BlackWhiteDraw(board):
+    return False
 
 
+pawn_heatmap = [
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.5, 0.5, 0.0, -0.1, -0.1, 0.0, 0.5, 0.5],
+    [0.1, 0.1, 0.0, -0.2, -0.2, 0.0, 0.1, 0.1],
+    [0.05, 0.05, 0.0, 0.1, 0.1, 0.0, 0.05, 0.05],
+    [0.0, 0.0, 0.0, 0.2, 0.2, 0.0, 0.0, 0.0],
+    [0.05, -0.05, 0.0, 0.0, 0.0, 0.0, -0.05, 0.05],
+    [0.05, 0.1, 0.1, -0.1, -0.1, 0.1, 0.1, 0.05],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+]
+
+knight_heatmap = [
+    [-0.5, -0.4, -0.4, -0.4, -0.4, -0.4, -0.4, -0.5],
+    [-0.4, -0.2, 0.0, 0.0, 0.0, 0.0, -0.2, -0.4],
+    [-0.4, 0.0, 0.1, 0.2, 0.2, 0.1, 0.0, -0.4],
+    [-0.4, 0.0, 0.2, 0.25, 0.25, 0.2, 0.0, -0.4],
+    [-0.4, 0.0, 0.2, 0.25, 0.25, 0.2, 0.0, -0.4],
+    [-0.4, 0.0, 0.1, 0.2, 0.2, 0.1, 0.0, -0.4],
+    [-0.4, -0.2, 0.0, 0.0, 0.0, 0.0, -0.2, -0.4],
+    [-0.5, -0.4, -0.4, -0.4, -0.4, -0.4, -0.4, -0.5]
+]
+
+bishop_heatmap = [
+    [-0.2, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.2],
+    [-0.1, 0.1, 0.0, 0.0, 0.0, 0.0, 0.1, -0.1],
+    [-0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, -0.1],
+    [-0.1, 0.0, 0.1, 0.1, 0.1, 0.1, 0.0, -0.1],
+    [-0.1, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, -0.1],
+    [-0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1],
+    [-0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1],
+    [-0.2, -0.1, -0.1, -0.1, -0.1, -0.1, -0.1, -0.2]
+]
+
+rook_heatmap = [
+    [0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.0],
+    [1.0, 1.0, 1.0, 1.1, 1.1, 1.0, 1.0, 1.0],
+    [0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.0]
+]
+
+queen_heatmap = [
+    [-0.2, -0.1, -0.1, -0.05, -0.05, -0.1, -0.1, -0.2],
+    [-0.1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.1],
+    [-0.1, 0.0, 0.05, 0.05, 0.05, 0.05, 0.0, -0.1],
+    [-0.05, 0.0, 0.05, 0.05, 0.05, 0.05, 0.0, -0.05],
+    [0.0, 0.0, 0.05, 0.05, 0.05, 0.05, 0.0, -0.05],
+    [-0.1, 0.05, 0.05, 0.05, 0.05, 0.05, 0.05, -0.1],
+    [-0.1, 0.0, 0.05, 0.0, 0.0, 0.0, 0.0, -0.1],
+    [-0.2, -0.1, -0.1, -0.05, -0.05, -0.1, -0.1, -0.2]
+]
+
+king_heatmap = [
+    [-0.3, -0.4, -0.4, -0.5, -0.5, -0.4, -0.4, -0.3],
+    [-0.3, -0.4, -0.4, -0.5, -0.5, -0.4, -0.4, -0.3],
+    [-0.3, -0.4, -0.4, -0.5, -0.5, -0.4, -0.4, -0.3],
+    [-0.3, -0.4, -0.4, -0.5, -0.5, -0.4, -0.4, -0.3],
+    [-0.2, -0.3, -0.3, -0.4, -0.4, -0.3, -0.3, -0.2],
+    [-0.1, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2, -0.1],
+    [0.2, 0.2, 0.0, 0.0, 0.0, 0.0, 0.2, 0.2],
+    [0.2, 0.3, 0.1, 0.0, 0.0, 0.1, 0.3, 0.2]
+]
+
+def displayBoardGrid(board, depth, color):
+    print("depth reached: ", depth, "| Color of the piece: ", color)
+    if (not color):
+        board = flipBoard(board)
+    for i in range(8):
+        print(board[i])
+    print("\n")
+
+def evaluateBoard(board):
+    score = 0
+    if WhiteMatesBlack(board):
+        return 1000
+    if BlackMatesWhite(board):
+        return -1000
+    if BlackWhiteDraw(board):
+        return 0
+    
+    for row in range(8):
+        for col in range(8):
+            if (board[row][col]//7 == 1):
+                if (board[row][col]%7 == 6): # pawn
+                    score+=1+pawn_heatmap[board[row][col]]
+                    continue
+                if (board[row][col]%7 == 5): # bishop
+                    score+=3+bishop_heatmap[board[row][col]]
+                    continue
+                if (board[row][col]%7 == 4): # knight
+                    score+=3+knight_heatmap[board[row][col]]
+                    continue
+                if (board[row][col]%7 == 3): # rook
+                    score+=5+rook_heatmap[row][col]
+                    continue
+                if (board[row][col]%7 == 2): # queen
+                    score+=9+queen_heatmap[row][col]
+                    continue
+            else:
+                if (board[row][col]%7 == 6): # pawn
+                    score-=1+pawn_heatmap[board[row][col]]
+                    continue
+                if (board[row][col]%7 == 5): # bishop
+                    score-=3+bishop_heatmap[board[row][col]]
+                    continue
+                if (board[row][col]%7 == 4): # knight
+                    score-=3+knight_heatmap[board[row][col]]
+                    continue
+                if (board[row][col]%7 == 3): # rook
+                    score-=5+rook_heatmap[row][col]
+                    continue
+                if (board[row][col]%7 == 2): # queen
+                    score-=9+queen_heatmap[row][col]
+                    continue
+
+# def moveGenerationTest(board, depth, color):
+#     new_board = deepcopy(board)
+#     move_set = list()
+#     for row in range(8):
+#         for col in range(8):
+#             if new_board[row][col]//7 == col:
+#                 for x in LegalSquares(board, row, col):
+#                     move_set.append([row, col, x[0], x[1]])
+#     for 
+    
+            
 
 
 
 # Main loop
 running = True
 firstClick = 1
-clickedPiece = 0
-prev_row, prev_col = 0, 0
+currentTurn = True
 while running:
+    # print(currentTurn)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:  # Check for left mouse button click
-                click_pos = pygame.mouse.get_pos()
-                clicked_square = getSquareFromClick(click_pos)
-                row, col = clicked_square
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:  # Check for left mouse button click
+                    # moveGenerationTest(chessboard, 2, True)
+                    click_pos = pygame.mouse.get_pos()
+                    clicked_square = getSquareFromClick(click_pos)
+                    row, col = clicked_square
 
-                if (firstClick == 1):
-                    if (chessboard[row][col]//7 != ME):
-                        continue
-                    prev_row, prev_col = row, col
-                    mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col)
-                    clickedPiece = chessboard[row][col]
-                    firstClick = 0
+                    if (firstClick == 1):
+                        print(currentTurn)
+                        if (chessboard[row][col]//7 != currentTurn):
+                            continue
+                        prev_row, prev_col = row, col
+                        mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col, currentTurn)
+                        firstClick = 0
 
-                else:
-                    mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col)
-                    firstClick = 1
+                    else:
+                        mouseClickHandler(chessboard, firstClick, row, col, prev_row, prev_col, currentTurn)
+                        firstClick = 1
+                        if currentTurn:
+                            currentTurn = False
+                        else:
+                            currentTurn = True
+                        playComputerMove(chessboard)
+
+
 
     pygame.display.flip()
 
