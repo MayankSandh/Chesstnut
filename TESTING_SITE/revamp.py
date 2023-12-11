@@ -90,11 +90,6 @@ piece_codes = {
 
             # drawFreeSquares(board, row+x, col+y)                 
 
-def makeMove(board, row, col, prev_row, prev_col):
-    clicked_piece = board[prev_row][prev_col]
-    board[prev_row][prev_col] = -1
-    board[row][col] = clicked_piece
-
 def mouseClickHandler(board, firstClick, row, col, prev_row, prev_col, currentTurn):
     # if (board[row][col]//7 == graphics.ME):
     if (firstClick):
@@ -106,7 +101,7 @@ def mouseClickHandler(board, firstClick, row, col, prev_row, prev_col, currentTu
             mouseClickHandler(board, 1, row, col, prev_row, prev_col, currentTurn)
         else:          
             if [row, col] in graphics.LegalSquares(board, prev_row, prev_col, currentTurn):
-                makeMove(board, row, col, prev_row, prev_col)
+                computer.makeMove(board, row, col, prev_row, prev_col)
                 if (board[row][col]%7 == 6 and (row == 0 or row == 7)):
                     pawnPromotion(board, row, col)
                 graphics.generateBoard(board, screen)
@@ -137,7 +132,7 @@ def computerMove(board, opp):
     else:
         bestEval = 999999
     for move in move_list:
-        makeMove(new_board, move[0], move[1], move[2], move[3])
+        computer.makeMove(new_board, move[0], move[1], move[2], move[3])
         # displayGird(new_board, depth, currentTurn, move, board)
         if opp == 0:
             if computer.evaluateBoard(new_board)<=bestEval:
@@ -148,47 +143,11 @@ def computerMove(board, opp):
                 bestMove = move
                 bestEval = computer.evaluateBoard(new_board)
         new_board = deepcopy(board)
-    makeMove(new_board, bestMove[0], bestMove[1], bestMove[2], bestMove[3])
+    computer.makeMove(new_board, bestMove[0], bestMove[1], bestMove[2], bestMove[3])
     graphics.generateBoard(new_board, screen)
     print("Current Evaluation: ",computer.evaluateBoard(new_board))
     return new_board
     
-
-
-
-
-
-
-
-
-def moveGenerationTest(board, depth, currentTurn, move, prev_board):
-    new_board = deepcopy(board)
-    # displayGird(new_board, depth, currentTurn, move, prev_board)
-
-    if (depth == 0):
-        return 1
-    
-    move_list = list()
-    for row in range(8):
-        for col in range(8):
-            if board[row][col] // 7 == currentTurn:
-                for move in graphics.LegalSquares(board, row, col, currentTurn):
-                    move_list.append([move[0], move[1], row, col])
-    positions = 0
-    if currentTurn:
-        nextTurn = False
-    else:
-        nextTurn = True
-
-    for move in move_list:
-        makeMove(new_board, move[0], move[1], move[2], move[3])
-        # displayGird(new_board, depth, currentTurn, move, board)
-        positions+=moveGenerationTest(new_board, depth-1, nextTurn, move, board)
-        new_board = deepcopy(board)
-    return positions
-
-    
-
 
 # Main loop
 running = True

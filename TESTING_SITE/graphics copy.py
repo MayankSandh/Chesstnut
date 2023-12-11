@@ -1,7 +1,7 @@
 import pygame
 from operator import add
 import time
-from computer import isKingUnderCheck, makeMove
+from computer import isKingUnderCheck, makeMove, displayGird
 from copy import deepcopy
 ME = 1
 if (ME):
@@ -25,16 +25,16 @@ LIGHT_GREY = (200, 200, 200)
 RED = (255, 0, 0)
 
 def isValid(board, pos, legal_moves, og_row, og_col, currentTurn, check_status):
+    newBoard = deepcopy(board)
     row, col = pos
     if row == og_row and col == og_col:
         return True
     if (row)<8 and (row)>=0 and (col)<8 and (col)>=0:
+        makeMove(newBoard, row, col, og_row, og_col)
+        if isKingUnderCheck(newBoard, currentTurn):
+            return False
         if board[row][col]//7 == (not currentTurn):
-            newBoard = deepcopy(board)
-            makeMove(newBoard, row, col, og_row, og_col)
-            if not isKingUnderCheck(newBoard, currentTurn): # waste king checking??
-                legal_moves.append(pos)
-                
+            legal_moves.append([row, col])
             return False        
         if board[row][col]//7 == currentTurn:
             return False
@@ -42,6 +42,39 @@ def isValid(board, pos, legal_moves, og_row, og_col, currentTurn, check_status):
         
     else:
         return False
+
+    # newBoard = deepcopy(board)
+    # row, col = pos
+    # if row == og_row and col == og_col:
+    #     return True
+    # if (row)<8 and (row)>=0 and (col)<8 and (col)>=0:
+    #     if board[row][col]//7 == (not currentTurn):
+    #         if board[row][col]%7 == 2:
+    #             print("atleast detecting the queen")
+    #         makeMove(newBoard, row, col, og_row, og_col)
+    #         if not isKingUnderCheck(newBoard, currentTurn): # waste king checking??
+    #             print("killing queen is safe for king")
+    #             if board[og_row][og_col] % 7 == 5:
+    #                 print("queen will be killed by the bishop")
+    #             else:
+    #                 print(board[og_row][og_col] % 7)
+    #             displayGird(newBoard, 2, currentTurn, [row, col, og_row, og_col],board)
+    #             legal_moves.append(pos)
+    #             # print(legal_moves)
+    #             return False
+    #         else:
+    #             print("killing queen is NOT safe for king")
+    #             return False        
+    #     if board[row][col]//7 == currentTurn:
+    #         return False
+    #     makeMove(newBoard, row, col, og_row, og_col)
+    #     if not isKingUnderCheck(newBoard, currentTurn): # waste king checking??
+    #         return True
+    #     else:
+    #         return False
+        
+    # else:
+    #     return False
 def LegalSquares(board, row, col, currentTurn):
     if not isKingUnderCheck(board, currentTurn):
         print("king is not in check")

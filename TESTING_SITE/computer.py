@@ -1,3 +1,5 @@
+from operator import add
+
 def WhiteMatesBlack(board):
     return False
 def BlackMatesWhite(board):
@@ -5,6 +7,61 @@ def BlackMatesWhite(board):
 def BlackWhiteDraw(board):
     return False
 
+def makeMove(board, row, col, prev_row, prev_col):
+    clicked_piece = board[prev_row][prev_col]
+    board[prev_row][prev_col] = -1
+    board[row][col] = clicked_piece
+
+def isValid(board, pos, legal_moves, og_row, og_col, currentTurn):
+    row, col = pos
+    if row == og_row and col == og_col:
+        return True
+    if (row)<8 and (row)>=0 and (col)<8 and (col)>=0:
+        if board[row][col]//7 == (not currentTurn):
+            legal_moves.append([row, col])
+            return False        
+        if board[row][col]//7 == currentTurn:
+            return False
+        return True
+        
+    else:
+        return False
+
+def isKingUnderCheck(board, currentTurn):
+    for r in range(8):
+        for c in range(8):
+            if board[r][c]//7 == currentTurn and board[r][c]%7 == 1:
+                row = r
+                col = c
+    legal_moves = list()
+
+    directions = ((1,1), (1,-1), (-1,1), (-1,-1)) # bishop pawn queen checker
+    for d in directions:
+        pos = [row, col]
+        while isValid(board, pos, legal_moves, row, col, currentTurn):
+            legal_moves.append(pos)
+            pos = list((map(add, pos, d)))
+        if (pos[0]<8 and pos[0]>-1 and pos[1] < 8 and pos[1]>-1) and board[pos[0]][pos[1]]//7 == (not currentTurn) and (board[pos[0]][pos[1]]%7 == 6 or board[pos[0]][pos[1]]%7 == 5 or board[pos[0]][pos[1]]%7 == 2):
+            return True
+                
+    directions = ((0,1), (0,-1), (-1,0), (1,0)) # rook queen checker
+    for d in directions:
+        pos = [row, col]
+        while isValid(board, pos, legal_moves, row, col, currentTurn):
+            legal_moves.append(pos) # waste list wasteage of space
+            pos = list((map(add, pos, d)))
+        if (pos[0]<8 and pos[0]>-1 and pos[1] < 8 and pos[1]>-1) and board[pos[0]][pos[1]]//7 == (not currentTurn) and (board[pos[0]][pos[1]]%7 == 3 or board[pos[0]][pos[1]]%7 == 2):
+            return True
+
+    direction = ((2,1), (2,-1), (-1,2), (1,2),(-2,1), (-2,-1), (-1,-2), (1,-2)) # knight checker
+    for x,y in direction:
+        if (row+x)<8 and (row+x)>=0 and (col+y)<8 and (col+y)>=0:
+            if isValid(board, [row+x, col+y], legal_moves, row, col, currentTurn):
+                legal_moves.append([row+x, col+y])
+            if board[row+x][col+y]//7 == (not currentTurn) and (board[row+x][col+y]%7 == 4):
+                return True
+
+    return False
 
 pawn_heatmap = [
     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -153,3 +210,30 @@ def displayGird(board, depth, currentTurn, move, prev_board):
         print()
     printMoveInWords(board, move, prev_board)
     print("\n\n")
+
+
+# def moveGenerationTest(board, depth, currentTurn, move, prev_board):
+#     new_board = deepcopy(board)
+#     # displayGird(new_board, depth, currentTurn, move, prev_board)
+
+#     if (depth == 0):
+#         return 1
+    
+#     move_list = list()
+#     for row in range(8):
+#         for col in range(8):
+#             if board[row][col] // 7 == currentTurn:
+#                 for move in LegalSquares(board, row, col, currentTurn):
+#                     move_list.append([move[0], move[1], row, col])
+#     positions = 0
+#     if currentTurn:
+#         nextTurn = False
+#     else:
+#         nextTurn = True
+
+#     for move in move_list:
+#         computer.makeMove(new_board, move[0], move[1], move[2], move[3])
+#         # displayGird(new_board, depth, currentTurn, move, board)
+#         positions+=moveGenerationTest(new_board, depth-1, nextTurn, move, board)
+#         new_board = deepcopy(board)
+#     return positions
