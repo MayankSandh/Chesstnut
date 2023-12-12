@@ -121,7 +121,6 @@ graphics.generateBoard(chessboard, screen)
 
 def computerMove(board, opp):
     move_list = list()
-    bestMove = list()
     for row in range(8):
         for col in range(8):
             if board[row][col] // 7 == opp:
@@ -144,23 +143,10 @@ def computerMove(board, opp):
                 bestMove = move
                 bestEval = computer.evaluateBoard(new_board)
         new_board = deepcopy(board)
-    if bestMove != []:
-        graphics.makeMove(new_board, bestMove[0], bestMove[1], bestMove[2], bestMove[3])
-        graphics.generateBoard(new_board, screen)
-        print("Current Evaluation: ",computer.evaluateBoard(new_board))
-        return new_board
-    else:
-        graphics.show_winner(graphics.ME)
-        pygame.quit()
-        sys.exit()  
-    # if not bestMove:
-    #     computer.makeMove(new_board, bestMove[0], bestMove[1], bestMove[2], bestMove[3])
-    #     graphics.generateBoard(new_board, screen)
-    #     print("Current Evaluation: ",computer.evaluateBoard(new_board))
-    #     return new_board
-    # else:
-    #     graphics.show_winner(graphics.ME)
-
+    computer.makeMove(new_board, bestMove[0], bestMove[1], bestMove[2], bestMove[3])
+    graphics.generateBoard(new_board, screen)
+    print("Current Evaluation: ",computer.evaluateBoard(new_board))
+    return new_board
     
 
 # Main loop

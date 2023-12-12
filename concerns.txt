@@ -57,7 +57,3 @@ code for the other side to play as well
 implement promotion of pawn for the opponent
 
 chessboard flip logic only flips pieces and not the board color
-
-check for the variable pos in the legal squares as it causes some uninitiated error 
-
-make sure to remove curretnStatus parameter from the  code

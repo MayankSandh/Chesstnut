@@ -130,7 +130,6 @@ def computerMove(board, opp):
             if board[row][col] // 7 == opp:
                 for move in graphics.LegalSquares(board, row, col, currentTurn):
                     move_list.append([move[0], move[1], row, col])
-                    
     new_board = deepcopy(board)
     if opp == 1:
         bestEval = -999999

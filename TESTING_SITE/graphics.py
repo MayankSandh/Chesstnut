@@ -3,7 +3,6 @@ from operator import add
 import time
 from computer import isKingUnderCheck, makeMove
 from copy import deepcopy
-import tkinter as tk
 ME = 1
 if (ME):
     OPP = 0
@@ -45,6 +44,7 @@ def isValid(board, pos, legal_moves, og_row, og_col, currentTurn, check_status):
         return False
 def LegalSquares(board, row, col, currentTurn):
     if not isKingUnderCheck(board, currentTurn):
+        print("king is not in check")
         if currentTurn:
             mult = -1
         else:
@@ -75,13 +75,13 @@ def LegalSquares(board, row, col, currentTurn):
                 x,y = direction[0]
                 if board[x+row][y+col]==-1:
                     legal_moves.append([row+x, col+y])
-                    x,y = direction[1]
-                    if (currentTurn):
-                        if board[x+row][y+col]==-1 and row == 6:
-                            legal_moves.append([row+x, col+y])
-                    else:
-                        if board[x+row][y+col]==-1 and row == 1:
-                            legal_moves.append([row+x, col+y])
+                x,y = direction[1]
+                if (currentTurn):
+                    if board[x+row][y+col]==-1 and row == 6:
+                        legal_moves.append([row+x, col+y])
+                else:
+                    if board[x+row][y+col]==-1 and row == 1:
+                        legal_moves.append([row+x, col+y])
                     
             elif board[row][col]%7 == 3: # ROOK MOVIES
                 directions = ((0,1), (0,-1), (-1,0), (1,0))
@@ -159,7 +159,7 @@ def LegalSquares(board, row, col, currentTurn):
                                 if pos2 != [row, col, row, col]:
                                     makeMove(newBoard, pos2[0], pos2[1], pos2[2], pos2[3])
                                     if not isKingUnderCheck(newBoard, currentTurn):
-                                        legal_moves.append([row+x, col+y])
+                                        legal_moves.append(pos)
                             else:
                                 if board[row+x][col+y]//7 == True:
                                     pos2 = [row+x, col+y, row, col]
@@ -167,7 +167,7 @@ def LegalSquares(board, row, col, currentTurn):
                                     if pos2 != [row, col, row, col]:
                                         makeMove(newBoard, pos2[0], pos2[1], pos2[2], pos2[3])
                                         if not isKingUnderCheck(newBoard, currentTurn):
-                                            legal_moves.append([row+x, col+y])
+                                            legal_moves.append(pos)
 
                         x,y = direction[0]
                         if board[x+row][y+col]==-1:
@@ -176,16 +176,16 @@ def LegalSquares(board, row, col, currentTurn):
                             if pos2 != [row, col, row, col]:
                                 makeMove(newBoard, pos2[0], pos2[1], pos2[2], pos2[3])
                                 if not isKingUnderCheck(newBoard, currentTurn):
-                                    legal_moves.append([row+x, col+y])
-                            x,y = direction[1]
-                            if (currentTurn):
-                                if board[x+row][y+col]==-1 and row == 6:
-                                    pos2 = [row+x, col+y, row, col]
-                                    newBoard = deepcopy(board)
-                                    if pos2 != [row, col, row, col]:
-                                        makeMove(newBoard, pos2[0], pos2[1], pos2[2], pos2[3])
-                                        if not isKingUnderCheck(newBoard, currentTurn):
-                                            legal_moves.append([row+x, col+y])
+                                    legal_moves.append(pos)
+                        x,y = direction[1]
+                        if (currentTurn):
+                            if board[x+row][y+col]==-1 and row == 6:
+                                pos2 = [row+x, col+y, row, col]
+                                newBoard = deepcopy(board)
+                                if pos2 != [row, col, row, col]:
+                                    makeMove(newBoard, pos2[0], pos2[1], pos2[2], pos2[3])
+                                    if not isKingUnderCheck(newBoard, currentTurn):
+                                        legal_moves.append(pos)
                         else:
                             if board[x+row][y+col]==-1 and row == 1:
                                 pos2 = [row+x, col+y, row, col]
@@ -263,6 +263,8 @@ def LegalSquares(board, row, col, currentTurn):
                                     legal_moves.append([row+x, col+y])
 
         return legal_moves
+
+
 
 def drawSquare(board, row, col, status, screen):
     if (status == 1):
@@ -387,18 +389,8 @@ def showLegal(board, row, col, currentTurn, screen):
         elif board:
             drawFreeSquares(board, x[0], x[1], screen)
 
-def show_winner(result):
-    root = tk.Tk()
-    
-    if result == 0:
-        label = tk.Label(root, text="Black won", font=("Arial", 18))
-    elif result == 1:
-        label = tk.Label(root, text="White won", font=("Arial", 18))
-    else:
-        label = tk.Label(root, text="Invalid input", font=("Arial", 18))
-    
-    label.pack(padx=20, pady=20)
-    root.mainloop()
+
+
 
 
 
