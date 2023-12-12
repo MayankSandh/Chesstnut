@@ -1,0 +1,7 @@
+for en passant, a more efficient way would be to make a signal for en passant which activates on the enemy's move instead of our move!
+what I mean to say is, when an enemy double pushes a pawn, and there is an enemy pawn right beside it, send out an information packet which has the index of the right beside pawn, the direction of the en passant available as well
+and the next make move makes the enpassant null void
+
+king has very special set of moves, that is, that it cannot attack a protected piece
+
+checkmate as well as pinned piece

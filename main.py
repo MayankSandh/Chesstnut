@@ -1,34 +1,70 @@
 import pygame
 import sys
 import tkinter as tk
-from operator import add
 from utils import logic
 from utils import graphics
-from copy import deepcopy\
 
-
-import time
 
 # Constants
 
 screen = pygame.display.set_mode((graphics.WIDTH, graphics.HEIGHT))
 pygame.display.set_caption('Chess Board')
 
-
+# board = [-1]*64
 # example_fen = '4QB2/1k6/1Np5/3p4/2p1PN2/2r1pP2/5P2/K2n3q w - - 0 1'
 example_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 board = logic.readFen(example_fen)
+# board[7] = logic.WhiteKnight
 
+
+def mouseClickHandler(board, firstclick, index, prev_index):
+    if firstclick:
+        graphics.highlightSquare(board,index,screen)
+        for move in logic.legalMoves(board, index, currentTurn):
+            if board[move[1]]//7 == (not currentTurn):
+                graphics.drawCaptureSquare(board, move[1], screen)
+            else:
+                graphics.drawFreeSquares(board, move[1], screen)
+    else:
+        if [prev_index, index] in logic.legalMoves(board, prev_index, currentTurn):
+            print("legal move selected")
+            graphics.makeMove(board, [prev_index, index])
+            graphics.generateBoard(board, screen)
+            if currentTurn:
+                return False
+            else:
+                return True
+        else:
+            print("bakchodi selected")
+            mouseClickHandler(board, True, index, prev_index)
+
+
+
+graphics.generateBoard(board, screen)
 running = True
 currentTurn = True
-firstClick = 1
-prev_row, prev_col = 0, 0
+firstclick = 1
+prev_index = 0
+firstclick = True
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        graphics.generateBoard(board, screen)
-
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                clicked_pos = graphics.getSquareFromClick(pygame.mouse.get_pos())
+                row, col = clicked_pos
+                index = row*8+col
+                if firstclick:
+                    if board[index]//7 != currentTurn:
+                        continue
+                    prev_index = index
+                    mouseClickHandler(board, firstclick, index, prev_index)
+                    firstclick = False
+                else:
+                    currentTurn = mouseClickHandler(board, firstclick, index, prev_index)
+                    firstclick = True
+                    
     pygame.display.flip()
 
 pygame.quit()
