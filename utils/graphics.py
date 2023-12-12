@@ -1,14 +1,8 @@
 import pygame
 from operator import add
 import time
-# from computer import isKingUnderCheck, makeMove
 from copy import deepcopy
 import tkinter as tk
-ME = 1
-if (ME):
-    OPP = 0
-else:
-    OPP = 1
 
 WIDTH, HEIGHT = 512, 512
 SQUARE_SIZE = WIDTH // 8  # Size of each square
@@ -31,17 +25,25 @@ def drawSquare(board, index, screen):
     color = IVORY if (row + col) % 2 == 0 else GREEN
     pygame.draw.rect(screen, color, (col * SQUARE_SIZE, row * SQUARE_SIZE, SQUARE_SIZE, SQUARE_SIZE))
     
-    # piece_code = board[row][col]  # Reverse row iteration
-    # if piece_code != -1:
-    #     # Construct the image path based on piece code (assuming filenames match piece codes)
-    #     image_path = f'pieces_new/{piece_code}.png'
-    #     try:
-    #         piece_image = pygame.image.load(image_path)
-    #         piece_image = pygame.transform.scale(piece_image, (SQUARE_SIZE, SQUARE_SIZE))
-    #         screen.blit(piece_image, (col * SQUARE_SIZE, row * SQUARE_SIZE))
-    #     except pygame.error as e:
-    #         print(f"Error loading image '{image_path}': {e}")
+    piece_code = board[row*8+col]  # Reverse row iteration
+    if piece_code != -1:
+        # Construct the image path based on piece code (assuming filenames match piece codes)
+        image_path = f'pieces_new/{piece_code}.png'
+        try:
+            piece_image = pygame.image.load(image_path)
+            piece_image = pygame.transform.scale(piece_image, (SQUARE_SIZE, SQUARE_SIZE))
+            screen.blit(piece_image, (col * SQUARE_SIZE, row * SQUARE_SIZE))
+        except pygame.error as e:
+            print(f"Error loading image '{image_path}': {e}")
+
 def generateBoard(board, screen):
     for row in range(8):
         for col in range(8):
             drawSquare(board, 8*row + col, screen)
+
+
+def getSquareFromClick(pos):
+    x, y = pos
+    row = y // SQUARE_SIZE
+    col = x // SQUARE_SIZE
+    return row, col
