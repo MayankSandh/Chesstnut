@@ -5,3 +5,9 @@ and the next make move makes the enpassant null void
 king has very special set of moves, that is, that it cannot attack a protected piece
 
 checkmate as well as pinned piece
+
+each move should come with a flag or checker if it is available for promotiom or not, so that there is a further move branching into the pieces which can be selected
+
+for virtual moves and castling constants, you can create antoher constant handler which keeps the earlier version of constants and then restores them and unMake (might be heavy tho)
+
+make sure kingCheck moves are somehow handled

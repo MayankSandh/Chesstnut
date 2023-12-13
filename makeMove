@@ -3,3 +3,7 @@ handle promotion
 
 make sure to create a signal inside the functino which separatest the fake function call from the real one (should not mess with global variables like that)
 (or should I create a board class?)
+
+pawn promotion unmake
+
+castling unmake

@@ -1,0 +1,2 @@
+tweaked drawCaptureSquare function
+slight if condition modificatoin in main.py

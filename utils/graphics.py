@@ -19,6 +19,22 @@ LIGHT_IVORY = (210, 255, 0)
 LIGHT_GREY = (200, 200, 200)
 RED = (255, 0, 0)
 
+def isWhite(piece_code):
+    if piece_code//7 == 1:
+        return True
+    else:
+        return False
+def isPawn(piece_code):
+    if piece_code%7 == 6:
+        return True
+    else:
+        return False
+def isKing(piece_code):
+    if piece_code%7 == 1:
+        return True
+    else:
+        return False
+
 def drawSquare(board, index, screen):
     row = index//8
     col = index%8
@@ -96,7 +112,7 @@ def drawCaptureSquare(board, index, screen):
     # Draw hollow circle
     pygame.draw.circle(screen, darker_color, (center_x, center_y), circle_radius, border_width)
 
-    piece_code = board[row][col]  # Reverse row iteration
+    piece_code = board[row*8+col]  # Reverse row iteration
     if piece_code != -1:
         # Construct the image path based on piece code (assuming filenames match piece codes)
         image_path = f'pieces_new/{piece_code}.png'
@@ -117,6 +133,20 @@ def makeMove(board, move): # also return the piece captured
     captured_piece = board[move[1]]
     board[move[1]] = clicked_piece
     board[move[0]] = -1
+    piece = board[move[1]]
+
+    #promotion handler
+    if isPawn(piece) and ((move[1]//8 == 0) or (move[1]//8 == 7)):
+        board[move[1]] = 7*(isWhite(piece))+2
+
+    #castling handler
+    if isKing(piece) and ((move[1]%8 - move[0]%8 == 2) or (move[1]%8 - move[0]%8 == -2)):
+        if (move[1]%8 - move[0]%8 == 2):
+            board[move[1]-1] = board[((move[1]//8)+1)*8 - 1]
+            board[((move[1]//8)+1)*8 - 1] = -1
+        else:
+            board[move[1]+1] = board[((move[1]//8))*8]
+            board[((move[1]//8))*8] = -1
     return captured_piece
 
 def unmakeMove(board, move, captured_piece): # the move should be as it was made before and not like reverse the move or something

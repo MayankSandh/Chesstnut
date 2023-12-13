@@ -23,6 +23,50 @@ WhiteBishop = 12
 BlackPawn = 6
 WhitePawn = 13
 
+hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved = False, False, False, False, False, False
+
+def changeKingStatus(piece_code):
+    global hasWhiteKingMoved, hasBlackKingMoved
+    if isWhite(piece_code):
+        hasWhiteKingMoved = True
+    else:
+        hasBlackKingMoved = True
+def changeRightRookStatus(piece_code):
+    global hasWhiteRightRookMoved, hasBlackRightRookMoved
+    if isWhite(piece_code):
+        hasWhiteRightRookMoved = True
+    else:
+        hasBlackRightRookMoved = True
+def changeLeftRookStatus(piece_code):
+    global hasWhiteLeftRookMoved, hasBlackLeftRookMoved
+    if isWhite(piece_code):
+        hasWhiteLeftRookMoved = True
+    else:
+        hasBlackLeftRookMoved = True
+def changeRookStatus(piece_code, prev_index):
+    global hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved
+    if isWhite(piece_code):
+        if prev_index%8 == 0 and not hasWhiteLeftRookMoved:
+            hasWhiteLeftRookMoved = True
+        elif not hasWhiteRightRookMoved:
+            hasWhiteRightRookMoved = True
+    else:
+        if prev_index%8 == 0 and not hasBlackLeftRookMoved:
+            hasBlackLeftRookMoved = True
+        elif not hasBlackRightRookMoved:
+            hasBlackRightRookMoved = True
+
+            
+
+def castlingFlagsHandler(piece, move):
+    
+    if isBlack(piece):
+        pass
+
+def restoreConstants(whiteKing, blackKing, whiteLR, blackLR, whiteRR, blackRR):
+    global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved
+    hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved = whiteKing, blackKing, whiteLR, blackLR, whiteRR, blackRR
+
 def isBlankSquare(piece_code):
     if piece_code%7 == -1:
         return True
@@ -34,10 +78,10 @@ def isBlack(piece_code):
     else:
         return False
 def isWhite(piece_code):
-    if piece_code//7 == 0:
-        return False
-    else:
+    if piece_code//7 == 1:
         return True
+    else:
+        return False
 
 def isKing(piece_code):
     if piece_code%7 == 1:
@@ -205,7 +249,6 @@ def generateKnightMoves(board, index, currentTurn):
                 continue
             else:
                 move_list.append([index, targetSquare])
-    print(move_list)
     return move_list
 
 def generateSlidingMoves(board, index, currentTurn):
@@ -230,22 +273,21 @@ def generatePawnMoves(board, index, currentTurn):
     piece = board[index]
     if ME:
         if isWhite(piece):
-            print("my white pawn detected")
             directions = [-8, -16]
             if row == 6:
                 if board[directions[1]+index]//7 == -1:
                     move_list.append([index, directions[1]+index])
             if board[directions[0]+index]//7 == -1:
                 move_list.append([index, directions[0]+index])
-            print(move_list)
             directionsAttack = [-7, -9]
             for direction in directionsAttack:
                 targetSquare = index+direction
                 if squareWithinBounds(index, direction):
-                    if targetSquare//7 == (not currentTurn):
+                    if board[targetSquare]//7 == (not currentTurn):
                         move_list.append([index, targetSquare])
                     
         else:
+            print("atleast detecting opponent black pawn")
             directions = [8, 16]
             if row == 1:
                 if board[directions[1]+index]//7 == -1:
@@ -256,8 +298,13 @@ def generatePawnMoves(board, index, currentTurn):
             for direction in directionsAttack:
                 targetSquare = index+direction
                 if squareWithinBounds(index, direction):
-                    if targetSquare//7 == (not currentTurn):
+                    if board[targetSquare]//7 == (not currentTurn):
+                        print("enemy piece detected")
                         move_list.append([index, targetSquare])
+                    else:
+                        print("enemy piece not detected")
+                else:
+                    print("square not within bounds")
     else:
         if isBlack(piece):
             directions = [-8, -16]
@@ -270,7 +317,7 @@ def generatePawnMoves(board, index, currentTurn):
             for direction in directionsAttack:
                 targetSquare = index+direction
                 if squareWithinBounds(index, direction):
-                    if targetSquare//7 == (not currentTurn):
+                    if board[targetSquare]//7 == (not currentTurn):
                         move_list.append([index, targetSquare])
         else:
             directions = [8, 16]
@@ -283,19 +330,121 @@ def generatePawnMoves(board, index, currentTurn):
             for direction in directionsAttack:
                 targetSquare = index+direction
                 if squareWithinBounds(index, direction):
-                    if targetSquare//7 == (not currentTurn):
+                    if board[targetSquare]//7 == (not currentTurn):
                         move_list.append([index, targetSquare])
     return move_list
 
 def generateKingMoves(board, index, currentTurn):
+    global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved
     move_list = list()
+    piece = board[index]
     for direction in DirectionOffsets:
+        targetSquare = index+direction
         if squareWithinBounds(index, direction):
-            targetSquare = index+direction
-            if targetSquare//7 == currentTurn:
+            if board[targetSquare]//7 == currentTurn:
                 continue
             if isKingSafe(targetSquare, currentTurn):
                 move_list.append([index, targetSquare])
+        print(move_list)
+
+    if ME:
+        if isWhite(piece):
+            if (not hasWhiteKingMoved):
+                if (not hasWhiteLeftRookMoved):
+                    LeftCastlingPossible = False
+                    ctr = index-1
+                    for i in range(1,4):
+                        if board[ctr]!= -1:
+                            break
+                        ctr-=1
+                    else:
+                        LeftCastlingPossible = True
+                    if LeftCastlingPossible:
+                        move_list.append([index, index-2])
+                if (not hasWhiteRightRookMoved):
+                    RightCastlingPossible = False
+                    ctr = index+1
+                    for i in range(5,7):
+                        if board[ctr]!= -1:
+                            break
+                        ctr+=1
+                    else:
+                        RightCastlingPossible = True
+                    if RightCastlingPossible:
+                        move_list.append([index, index+2])
+        else:
+            if (not hasBlackKingMoved):
+                if (not hasBlackLeftRookMoved):
+                    LeftCastlingPossible = False
+                    ctr = index-1
+                    for i in range(1,4):
+                        if board[ctr]!= -1:
+                            break
+                        ctr-=1
+                    else:
+                        LeftCastlingPossible = True
+                    if LeftCastlingPossible:
+                        move_list.append([index, index-2])
+                if (not hasBlackRightRookMoved):
+                    RightCastlingPossible = False
+                    ctr = index+1
+                    for i in range(5,7):
+                        if board[ctr]!= -1:
+                            break
+                        ctr+=1
+                    else:
+                        RightCastlingPossible = True
+                    if RightCastlingPossible:
+                        move_list.append([index, index+2])
+    else:
+        if isBlack(piece):
+            if (not hasBlackKingMoved):
+                if (not hasBlackRightRookMoved):
+                    LeftCastlingPossible = False
+                    ctr = index+1
+                    for i in range(1,4):
+                        if board[ctr]!= -1:
+                            break
+                        ctr+=1
+                    else:
+                        RightCastlingPossible = True
+                    if RightCastlingPossible:
+                        move_list.append([index, index+2])
+                if (not hasBlackLeftRookMoved):
+                    LeftCastlingPossible = False
+                    ctr = index-1
+                    for i in range(5,7):
+                        if board[ctr]!= -1:
+                            break
+                        ctr-=1
+                    else:
+                        LeftCastlingPossible = True
+                    if LeftCastlingPossible:
+                        move_list.append([index, index-2])
+        else:
+            if (not hasWhiteKingMoved):
+                if (not hasWhiteRightRookMoved):
+                    LeftCastlingPossible = False
+                    ctr = index+1
+                    for i in range(1,4):
+                        if board[ctr]!= -1:
+                            break
+                        ctr+=1
+                    else:
+                        RightCastlingPossible = True
+                    if RightCastlingPossible:
+                        move_list.append([index, index+2])
+                if (not hasWhiteLeftRookMoved):
+                    LeftCastlingPossible = False
+                    ctr = index-1
+                    for i in range(5,7):
+                        if board[ctr]!= -1:
+                            break
+                        ctr-=1
+                    else:
+                        LeftCastlingPossible = True
+                    if LeftCastlingPossible:
+                        move_list.append([index, index-2])
     return move_list
 
 
