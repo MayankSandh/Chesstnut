@@ -224,19 +224,20 @@ def legalMoves(board, index, currentTurn):
         if isKing(piece):
             return (generateKingMoves(board, index, currentTurn))
 
-def generateMoves(board, currentTurn):
+def generateAllMoves(board, currentTurn):
     allMovesList = list()
     for startSquare in range(64):
         piece = board[startSquare]
         if (piece)//7 == currentTurn:
             if isSlidingPiece(piece):
-                allMovesList.append(generateSlidingMoves(board, startSquare, currentTurn))
+                allMovesList+=(generateSlidingMoves(board, startSquare, currentTurn))
             if isKnight(piece):
-                allMovesList.append(generateKnightMoves(board, startSquare, currentTurn))
+                allMovesList+=(generateKnightMoves(board, startSquare, currentTurn))
             if isPawn(piece):
-                allMovesList.append(generatePawnMoves(board, startSquare, currentTurn))
+                allMovesList+=(generatePawnMoves(board, startSquare, currentTurn))
             if isKing(piece):
-                allMovesList.append(generateKingMoves(board, startSquare, currentTurn))
+                allMovesList+=(generateKingMoves(board, startSquare, currentTurn))
+    return allMovesList
 
 def generateKnightMoves(board, index, currentTurn):
     move_list = list()

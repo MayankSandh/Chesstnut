@@ -3,6 +3,7 @@ import sys
 import tkinter as tk
 from utils import logic
 from utils import graphics
+from random import randint
 
 
 # Constants
@@ -26,7 +27,6 @@ def displayGird(board):
 def mouseClickHandler(board, firstclick, index, prev_index):
     if firstclick:
         graphics.highlightSquare(board,index,screen)
-        print(logic.legalMoves(board, index, currentTurn))
         if board[index]//7 == currentTurn:
             for move in logic.legalMoves(board, index, currentTurn):
                 if board[move[1]]//7 == (not currentTurn):
@@ -65,6 +65,10 @@ def mouseClickHandler(board, firstclick, index, prev_index):
                 else:
                     return False
 
+def computerMakeMove(board, currentTurn):
+    moves = logic.generateAllMoves(board, currentTurn)
+    return moves[randint(0, len(moves)-1)]
+
 graphics.generateBoard(board, screen)
 running = True
 currentTurn = True
@@ -75,25 +79,34 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1:
-                clicked_pos = graphics.getSquareFromClick(pygame.mouse.get_pos())
-                row, col = clicked_pos
-                index = row*8+col
-                if firstclick:
-                    if board[index]//7 != currentTurn:
-                        continue
-                    prev_index = index
-                    mouseClickHandler(board, firstclick, index, prev_index)
-                    firstclick = False
-                    
-                else:
-                    if board[index]//7 == currentTurn:
+        if not (currentTurn ^ logic.ME):
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    clicked_pos = graphics.getSquareFromClick(pygame.mouse.get_pos())
+                    row, col = clicked_pos
+                    index = row*8+col
+                    if firstclick:
+                        if board[index]//7 != currentTurn:
+                            continue
                         prev_index = index
                         mouseClickHandler(board, firstclick, index, prev_index)
-                        continue
-                    currentTurn = mouseClickHandler(board, firstclick, index, prev_index)
-                    firstclick = True
+                        firstclick = False
+                        
+                    else:
+                        if board[index]//7 == currentTurn:
+                            prev_index = index
+                            mouseClickHandler(board, firstclick, index, prev_index)
+                            continue
+                        currentTurn = mouseClickHandler(board, firstclick, index, prev_index)
+                        firstclick = True
+        else:
+            move = computerMakeMove(board, currentTurn)
+            graphics.makeMove(board, move)
+            graphics.generateBoard(board, screen)
+            if currentTurn:
+                currentTurn = False
+            else:
+                currentTurn = True
     pygame.display.flip()
 
 pygame.quit()
