@@ -56,9 +56,7 @@ def changeRookStatus(piece_code, prev_index):
         if prev_index%8 == 0 and not hasBlackLeftRookMoved:
             hasBlackLeftRookMoved = True
         elif not hasBlackRightRookMoved:
-            hasBlackRightRookMoved = True
-
-            
+            hasBlackRightRookMoved = True 
 
 def castlingFlagsHandler(piece, move):
     
@@ -481,16 +479,17 @@ def makeMove(board, move): # also return the piece captured
     updatePieceLocationMoved(piece, move)
     if isWhite(captured_piece):
         whitePiecesLocation.remove(move[0])
-    else:
+    elif isBlack(captured_piece):
         blackPiecesLocation.remove(move[0])
     
     return captured_piece
 
 def updatePieceLocationMoved(piece, move):
+    global whitePiecesLocation, blackPiecesLocation
     if isWhite(piece):
         whitePiecesLocation.remove(move[0])
         whitePiecesLocation.append(move[1])
-    else:
+    elif isBlack(piece):
         blackPiecesLocation.remove(move[0])
         blackPiecesLocation.append(move[1])
 

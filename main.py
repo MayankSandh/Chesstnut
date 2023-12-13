@@ -18,6 +18,7 @@ board = logic.readFen(example_fen)
 # board[9] = logic.WhitePawn
     
 def mouseClickHandler(board, firstclick, index, prev_index):
+    print(logic.whitePiecesLocation, logic.blackPiecesLocation)
     if firstclick:
         graphics.highlightSquare(board,index,screen)
         if board[index]//7 == currentTurn:
