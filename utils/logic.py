@@ -477,10 +477,11 @@ def makeMove(board, move): # also return the piece captured
             updatePieceLocationMoved(board[((move[1]//8))*8], [((move[1]//8))*8, move[1]-1])
 
     updatePieceLocationMoved(piece, move)
+    print(whitePiecesLocation, blackPiecesLocation, move[0])
     if isWhite(captured_piece):
-        whitePiecesLocation.remove(move[0])
+        whitePiecesLocation.remove(move[1])
     elif isBlack(captured_piece):
-        blackPiecesLocation.remove(move[0])
+        blackPiecesLocation.remove(move[1])
     
     return captured_piece
 
