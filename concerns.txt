@@ -11,3 +11,5 @@ each move should come with a flag or checker if it is available for promotiom or
 for virtual moves and castling constants, you can create antoher constant handler which keeps the earlier version of constants and then restores them and unMake (might be heavy tho)
 
 make sure kingCheck moves are somehow handled
+
+rook capture is equivalent to rook moved

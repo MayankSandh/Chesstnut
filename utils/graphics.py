@@ -3,6 +3,8 @@ from operator import add
 import time
 from copy import deepcopy
 import tkinter as tk
+# from logic import actualOffsets
+
 
 WIDTH, HEIGHT = 512, 512
 SQUARE_SIZE = WIDTH // 8  # Size of each square
@@ -128,26 +130,7 @@ def generateBoard(board, screen):
         for col in range(8):
             drawSquare(board, 8*row + col, screen)
 
-def makeMove(board, move): # also return the piece captured
-    clicked_piece = board[move[0]]
-    captured_piece = board[move[1]]
-    board[move[1]] = clicked_piece
-    board[move[0]] = -1
-    piece = board[move[1]]
-
-    #promotion handler
-    if isPawn(piece) and ((move[1]//8 == 0) or (move[1]//8 == 7)):
-        board[move[1]] = 7*(isWhite(piece))+2
-
-    #castling handler
-    if isKing(piece) and ((move[1]%8 - move[0]%8 == 2) or (move[1]%8 - move[0]%8 == -2)):
-        if (move[1]%8 - move[0]%8 == 2):
-            board[move[1]-1] = board[((move[1]//8)+1)*8 - 1]
-            board[((move[1]//8)+1)*8 - 1] = -1
-        else:
-            board[move[1]+1] = board[((move[1]//8))*8]
-            board[((move[1]//8))*8] = -1
-    return captured_piece
+    
 
 def unmakeMove(board, move, captured_piece): # the move should be as it was made before and not like reverse the move or something
     clicked_piece = board[move[1]]
@@ -159,3 +142,9 @@ def getSquareFromClick(pos):
     row = y // SQUARE_SIZE
     col = x // SQUARE_SIZE
     return row, col
+
+def displayGird(board):
+    for row in range(8):
+        for col in range(8):
+            print(board[row*8+col], end = " ")
+        print()

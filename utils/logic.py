@@ -9,6 +9,8 @@ currentTurn = True
 lastMoveOfBlack = [0, 0]
 lastMoveOfWhite = [0, 0]
 
+blackPiecesLocation = list()
+whitePiecesLocation = list()
 
 BlackKing = 1
 WhiteKing = 7
@@ -165,6 +167,10 @@ def readFen(fen):
         elif char in piece_codes:
             piece_code = piece_codes[char]
             board[col_index*8+row_index] = piece_code
+            if isBlack(piece_code):
+                blackPiecesLocation.append(col_index*8+row_index)
+            else:
+                whitePiecesLocation.append(col_index*8+row_index)
             row_index += 1
         else:
             continue  # Ignore unexpected characters
@@ -448,6 +454,43 @@ def generateKingMoves(board, index, currentTurn):
                         move_list.append([index, index-2])
     return move_list
 
-
+def makeMove(board, move): # also return the piece captured
+    global blackPiecesLocation, whitePiecesLocation
     
+    clicked_piece = board[move[0]]
+    captured_piece = board[move[1]]
+    board[move[1]] = clicked_piece
+    board[move[0]] = -1
+    piece = board[move[1]]
+
+    #promotion handler
+    if isPawn(piece) and ((move[1]//8 == 0) or (move[1]//8 == 7)):
+        board[move[1]] = 7*(isWhite(piece))+2
+
+    #castling handler
+    if isKing(piece) and ((move[1]%8 - move[0]%8 == 2) or (move[1]%8 - move[0]%8 == -2)):
+        if (move[1]%8 - move[0]%8 == 2):
+            board[move[1]-1] = board[((move[1]//8)+1)*8 - 1]
+            board[((move[1]//8)+1)*8 - 1] = -1
+            updatePieceLocationMoved(board[((move[1]//8)+1)*8 - 1], [((move[1]//8)+1)*8 - 1, move[1]-1])
+        else:
+            board[move[1]+1] = board[((move[1]//8))*8]
+            board[((move[1]//8))*8] = -1
+            updatePieceLocationMoved(board[((move[1]//8))*8], [((move[1]//8))*8, move[1]-1])
+
+    updatePieceLocationMoved(piece, move)
+    if isWhite(captured_piece):
+        whitePiecesLocation.remove(move[0])
+    else:
+        blackPiecesLocation.remove(move[0])
+    
+    return captured_piece
+
+def updatePieceLocationMoved(piece, move):
+    if isWhite(piece):
+        whitePiecesLocation.remove(move[0])
+        whitePiecesLocation.append(move[1])
+    else:
+        blackPiecesLocation.remove(move[0])
+        blackPiecesLocation.append(move[1])
 
