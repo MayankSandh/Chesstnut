@@ -19,3 +19,7 @@ if piece of opponent is lower, then exchange more pieces
 implement book moves if possible
 
 i can't play for black some constants issue
+
+castling constant still not fixed
+
+keep track of king location in order to not search for king again and again

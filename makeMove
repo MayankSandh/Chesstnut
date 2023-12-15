@@ -15,3 +15,5 @@ when rook is captured, consider rook moved
 
 
 when pawn promoted, handle the flag 
+
+make sure in the kingcheckhandler, you remove all the self square move in the attacking squares part, because if king can kill a checking piece, it might not detect the capture

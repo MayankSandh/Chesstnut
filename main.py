@@ -6,6 +6,7 @@ from utils import graphics
 from random import randint
 from time import time
 from copy import deepcopy
+from utils import eval
 
 # Constants
 
@@ -16,11 +17,13 @@ board = [-1]*64
 # example_fen = '4QB2/1k6/1Np5/3p4/2p1PN2/2r1pP2/5P2/K2n3q w - - 0 1'
 example_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 # example_fen = '3qr2k/pbpp2pp/1p5N/3Q2b1/2P1P3/P7/1PP2PPP/R4RK1 w - - 0 1'
+# example_fen = '8/8/8/8/8/3K4/8/8'
 board = logic.readFen(example_fen)
+# board[5] = logic.WhiteRook
+# logic.displayGird(logic.whiteAttackSquares)
 # board[9] = logic.WhitePawn
 
 def printMyStats(board, index, prev_index):
-    return
     print("\n--------------------MADE MY MOVE ------------------------")
     print("piece_moved is: ", board[index])
     print("move played:", [prev_index, index])
@@ -30,7 +33,6 @@ def printMyStats(board, index, prev_index):
     print("----------------------------------------------------------")
 
 def printCompStats(board, index, prev_index):
-    return
     print("\n--------------------COMPUTER MOVE ------------------------")
     print("piece_moved is: ", board[index])
     print("move played:", [prev_index, index])
@@ -103,50 +105,48 @@ def printStats(board):
 
 def computerMakeMove(board, depth, currentTurn, og_depth):
     if (depth == 0):
-        return logic.evaluateBoard(board)
+        return eval.evaluateBoard(board)
     bestMove = list()
     if currentTurn:
         bestEval = -1000000
-        # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
-        # print(logic.generateAllMoves(board, currentTurn))
+        print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
+        print(logic.generateAllMoves(board, currentTurn))
         for move in logic.generateAllMoves(board, currentTurn):
-            constants = deepcopy(logic.fetchConstants())
-            # logic.printConstants()    
+            constants = deepcopy(logic.fetchConstants())   
             piece = board[move[0]]
-            # print("Board Stats before making move:", move, piece, "depth: ", depth)
-            # printStats(board)
+            print("Board Stats before making move:", move, piece, "depth: ", depth)
+            printStats(board)
             capture, flag = logic.makeMove(board, move)
-            # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
-            # printStats(board)
+            print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
+            printStats(board)
             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
             if val > bestEval:
                 bestMove = move
                 bestEval = val
             logic.unmakeMove(board, move, capture, flag)
             logic.restoreConstants(constants)
-            # print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
-            # printStats(board)
-            # logic.printConstants()
+            print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
+            printStats(board)
     else:
         bestEval = 1000000
-        # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
-        # print(logic.generateAllMoves(board, currentTurn))
+        print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
+        print(logic.generateAllMoves(board, currentTurn))
         for move in logic.generateAllMoves(board, currentTurn):
             constants = deepcopy(logic.fetchConstants())
             piece = board[move[0]]
-            # print("Board Stats before making move:", move, piece, "depth: ", depth)
-            # printStats(board)
+            print("Board Stats before making move:", move, piece, "depth: ", depth)
+            printStats(board)
             capture, flag = logic.makeMove(board, move)
-            # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
-            # printStats(board)
+            print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
+            printStats(board)
             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
             if val < bestEval:
                 bestMove = move
                 bestEval = val
             logic.unmakeMove(board, move, capture, flag)
             logic.restoreConstants(constants)
-            # print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
-            # printStats(board)
+            print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
+            printStats(board)
     if (depth == og_depth):
         return bestMove, bestEval
     else:
@@ -154,6 +154,7 @@ def computerMakeMove(board, depth, currentTurn, og_depth):
 
 
 graphics.generateBoard(board, screen)
+
 running = True
 currentTurn = True
 firstclick = 1
@@ -186,9 +187,10 @@ while running:
                         currentTurn = mouseClickHandler(board, firstclick, index, prev_index)
                         firstclick = True
         else:
-            depth = 3
+            depth = 2
             starttime = time()
             move, bestEval = computerMakeMove(board, depth, currentTurn, depth)
+            printCompStats(board, move[1], move[0])
             if (bestEval > 15000):
                 graphics.show_winner(1)
                 pygame.quit()
@@ -256,3 +258,55 @@ while running:
 
 pygame.quit()
 sys.exit()
+
+
+# def computerMakeMove(board, depth, currentTurn, og_depth):
+#     if (depth == 0):
+#         return eval.evaluateBoard(board)
+#     bestMove = list()
+#     if currentTurn:
+#         bestEval = -1000000
+#         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
+#         # print(logic.generateAllMoves(board, currentTurn))
+#         for move in logic.generateAllMoves(board, currentTurn):
+#             constants = deepcopy(logic.fetchConstants())
+#             # logic.printConstants()    
+#             piece = board[move[0]]
+#             # print("Board Stats before making move:", move, piece, "depth: ", depth)
+#             # printStats(board)
+#             capture, flag = logic.makeMove(board, move)
+#             # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
+#             # printStats(board)
+#             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
+#             if val > bestEval:
+#                 bestMove = move
+#                 bestEval = val
+#             logic.unmakeMove(board, move, capture, flag)
+#             logic.restoreConstants(constants)
+#             # print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
+#             # printStats(board)
+#             # logic.printConstants()
+#     else:
+#         bestEval = 1000000
+#         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
+#         # print(logic.generateAllMoves(board, currentTurn))
+#         for move in logic.generateAllMoves(board, currentTurn):
+#             constants = deepcopy(logic.fetchConstants())
+#             piece = board[move[0]]
+#             # print("Board Stats before making move:", move, piece, "depth: ", depth)
+#             # printStats(board)
+#             capture, flag = logic.makeMove(board, move)
+#             # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
+#             # printStats(board)
+#             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
+#             if val < bestEval:
+#                 bestMove = move
+#                 bestEval = val
+#             logic.unmakeMove(board, move, capture, flag)
+#             logic.restoreConstants(constants)
+#             # print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
+#             # printStats(board)
+#     if (depth == og_depth):
+#         return bestMove, bestEval
+#     else:
+#         return bestEval

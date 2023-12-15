@@ -1,0 +1,6 @@
+first check all the moves for all the types of the pieces from the kings position
+if we detected a piece, then we know the king is not isKingSafe
+we start finding attack squares,
+if start checkingn for sliding pieces if an attack direction has our piece, we will still check with one more depth, if we detected enemy piece whcih is that sliding directed piece, we will consider those squares in attack squares ()
+next, we need to consider legal capture moves in the vicinity of the king, such as a 
+pawn checking the king, the king can only capture it if it is not protected by any other piece 
