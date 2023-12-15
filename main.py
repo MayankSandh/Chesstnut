@@ -31,12 +31,6 @@ def mouseClickHandler(board, firstclick, index, prev_index):
         if board[index]//7 == currentTurn:
             mouseClickHandler(board, True, index, prev_index)
         else:
-            print("========================MY MOVE==================================")
-            print("========================MY MOVE==================================")
-            print("========================MY MOVE==================================")
-            print("========================MY MOVE==================================")
-            print("========================MY MOVE==================================")
-            print("========================MY MOVE==================================")
             if [prev_index, index] in logic.legalMoves(board, prev_index, currentTurn):
                 captured_piece, flag = logic.makeMove(board, [prev_index, index])
                 graphics.generateBoard(board, screen)
@@ -49,7 +43,7 @@ def mouseClickHandler(board, firstclick, index, prev_index):
                             logic.changeRightRookStatus(board[index])
                         else:
                             logic.changeLeftRookStatus(board[index])
-                        logic.printConstants()
+                        # logic.printConstants()
 
                 #rook constant handler
                 if logic.isRook(board[index]):
@@ -91,35 +85,29 @@ def computerMakeMove(board, depth, currentTurn, og_depth):
         bestEval = -1000000
         for move in logic.generateAllMoves(board, currentTurn):
             constants = deepcopy(logic.fetchConstants())
-            logic.printConstants()
-            print("made move")
+            # logic.printConstants()
             capture, flag = logic.makeMove(board, move)
             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
             if val > bestEval:
                 bestMove = move
                 bestEval = val
             logic.unmakeMove(board, move, capture, flag)
-            print("unmake move")
-            print("the constants, i stored",constants)
             logic.restoreConstants(constants)
-            logic.printConstants()
+            # logic.printConstants()
             print()
     else:
         bestEval = 1000000
         for move in logic.generateAllMoves(board, currentTurn):
             constants = deepcopy(logic.fetchConstants())
-            logic.printConstants()
-            print("made move")
+            # logic.printConstants()
             capture, flag = logic.makeMove(board, move)
             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
             if val < bestEval:
                 bestMove = move
                 bestEval = val
             logic.unmakeMove(board, move, capture, flag)
-            print("unmake move")
-            print("the constants, i stored",constants)
             logic.restoreConstants(constants)
-            logic.printConstants()
+            # logic.printConstants()
     if (depth == og_depth):
         return bestMove
     else:

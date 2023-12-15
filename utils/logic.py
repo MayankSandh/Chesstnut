@@ -288,11 +288,11 @@ def generatePawnMoves(board, index, currentTurn):
     if ME:
         if isWhite(piece):
             directions = [-8, -16]
-            if row == 6:
-                if board[directions[1]+index]//7 == -1:
-                    move_list.append([index, directions[1]+index])
             if board[directions[0]+index]//7 == -1:
                 move_list.append([index, directions[0]+index])
+                if row == 6:
+                    if board[directions[1]+index]//7 == -1:
+                        move_list.append([index, directions[1]+index])
             directionsAttack = [-7, -9]
             for direction in directionsAttack:
                 targetSquare = index+direction
@@ -302,11 +302,11 @@ def generatePawnMoves(board, index, currentTurn):
                     
         else:
             directions = [8, 16]
-            if row == 1:
-                if board[directions[1]+index]//7 == -1:
-                    move_list.append([index, directions[1]+index])
             if board[directions[0]+index]//7 == -1:
                 move_list.append([index, directions[0]+index])
+                if row == 1:
+                    if board[directions[1]+index]//7 == -1:
+                        move_list.append([index, directions[1]+index])
             directionsAttack = [7, 9]
             for direction in directionsAttack:
                 targetSquare = index+direction
@@ -316,11 +316,11 @@ def generatePawnMoves(board, index, currentTurn):
     else:
         if isBlack(piece):
             directions = [-8, -16]
-            if row == 6:
-                if board[directions[1]+index]//7 == -1:
-                    move_list.append([index, directions[1]+index])
             if board[directions[0]+index]//7 == -1:
                 move_list.append([index, directions[0]+index])
+                if row == 6:
+                    if board[directions[1]+index]//7 == -1:
+                        move_list.append([index, directions[1]+index])
             directionsAttack = [-7, -9]
             for direction in directionsAttack:
                 targetSquare = index+direction
@@ -329,11 +329,11 @@ def generatePawnMoves(board, index, currentTurn):
                         move_list.append([index, targetSquare])
         else:
             directions = [8, 16]
-            if row == 1:
-                if board[directions[1]+index]//7 == -1:
-                    move_list.append([index, directions[1]+index])
             if board[directions[0]+index]//7 == -1:
                 move_list.append([index, directions[0]+index])
+                if row == 1:
+                    if board[directions[1]+index]//7 == -1:
+                        move_list.append([index, directions[1]+index])
             directionsAttack = [7, 9]
             for direction in directionsAttack:
                 targetSquare = index+direction
@@ -464,10 +464,8 @@ def makeMove(board, move): # also return the piece captured
     board[move[0]] = -1
     piece = board[move[1]]
 
-    if piece%7 != -1:
-        print(move)
-        displayGird(board)
-        print("piece captured", piece)
+    if captured_piece%7 != -1:
+        pass
 
     #promotion handler
     if isPawn(piece) and ((move[1]//8 == 0) or (move[1]//8 == 7)):
@@ -479,18 +477,14 @@ def makeMove(board, move): # also return the piece captured
     if isKing(piece) and ((move[1]%8 - move[0]%8 == 2) or (move[1]%8 - move[0]%8 == -2)):
         isCastling = True
         if (move[1]%8 - move[0]%8 == 2): # right castling
-            print("right castling done")
             board[move[1]-1] = board[((move[1]//8)+1)*8 - 1]
             board[((move[1]//8)+1)*8 - 1] = -1
             updatePieceLocationMoved(board[((move[1]//8)+1)*8 - 1], [((move[1]//8)+1)*8 - 1, move[1]-1])
-            displayGird(board)
-            print(whitePiecesLocation, blackPiecesLocation)
         else: # left castling
             board[move[1]+1] = board[((move[1]//8))*8]
             board[((move[1]//8))*8] = -1
             updatePieceLocationMoved(board[((move[1]//8))*8], [((move[1]//8))*8, move[1]+1])
         flag = 1
-    print(piece, move, blackPiecesLocation, whitePiecesLocation)
     if not isCastling:
         updatePieceLocationMoved(piece, move)
     updatedPieceLocationCaptured(captured_piece, move)
@@ -507,13 +501,11 @@ def unmakeMove(board, move, captured_piece, flag): # the move should be as it wa
             
     elif flag == 1:
         if (move[1]%8 - move[0]%8 == 2):
-            print("~~~~~~~~~~~~~~TRYING TO CANCEL RIGHT CASTLIN~~~~~~~~~~~~~~~~~~~~~~~~~~")
             clicked_piece = board[move[1]]
             board[move[0]] = clicked_piece
             board[move[1]] = captured_piece
             restoreCapturePieceLocation(captured_piece, move)
             cancelRightCastelling(board, move)
-            displayGird(board)
             
         else:
             clicked_piece = board[move[1]]
