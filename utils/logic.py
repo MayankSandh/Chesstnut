@@ -27,6 +27,16 @@ WhitePawn = 13
 
 hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved = False, False, False, False, False, False
 
+def fetchConstants():
+    global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved, blackPiecesLocation, whitePiecesLocation
+    return [hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved, blackPiecesLocation, whitePiecesLocation]
+def restoreConstants(constants):
+    global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved, blackPiecesLocation, whitePiecesLocation
+    hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved, blackPiecesLocation, whitePiecesLocation = constants[0], constants[1], constants[2], constants[3], constants[4], constants[5], constants[6], constants[7]
+def printConstants():
+    global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved, blackPiecesLocation, whitePiecesLocation
+    print(hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved, blackPiecesLocation, whitePiecesLocation)
+
 def changeKingStatus(piece_code):
     global hasWhiteKingMoved, hasBlackKingMoved
     if isWhite(piece_code):
@@ -63,9 +73,9 @@ def castlingFlagsHandler(piece, move):
     if isBlack(piece):
         pass
 
-def restoreConstants(whiteKing, blackKing, whiteLR, blackLR, whiteRR, blackRR):
-    global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved
-    hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved = whiteKing, blackKing, whiteLR, blackLR, whiteRR, blackRR
+# def restoreConstants(whiteKing, blackKing, whiteLR, blackLR, whiteRR, blackRR):
+#     global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved
+#     hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved = whiteKing, blackKing, whiteLR, blackLR, whiteRR, blackRR
 
 def isBlankSquare(piece_code):
     if piece_code%7 == -1:
@@ -116,7 +126,6 @@ def isPawn(piece_code):
 
 def isSlidingPiece(piece_code):
     if isBishop(piece_code) or isQueen(piece_code) or isRook(piece_code):
-        print(isBishop(piece_code), isQueen(piece_code), isRook(piece_code))
         return True
     else:
         return False
@@ -292,7 +301,6 @@ def generatePawnMoves(board, index, currentTurn):
                         move_list.append([index, targetSquare])
                     
         else:
-            print("atleast detecting opponent black pawn")
             directions = [8, 16]
             if row == 1:
                 if board[directions[1]+index]//7 == -1:
@@ -304,12 +312,7 @@ def generatePawnMoves(board, index, currentTurn):
                 targetSquare = index+direction
                 if squareWithinBounds(index, direction):
                     if board[targetSquare]//7 == (not currentTurn):
-                        print("enemy piece detected")
                         move_list.append([index, targetSquare])
-                    else:
-                        print("enemy piece not detected")
-                else:
-                    print("square not within bounds")
     else:
         if isBlack(piece):
             directions = [-8, -16]
@@ -350,7 +353,6 @@ def generateKingMoves(board, index, currentTurn):
                 continue
             if isKingSafe(targetSquare, currentTurn):
                 move_list.append([index, targetSquare])
-        print(move_list)
 
     if ME:
         if isWhite(piece):
@@ -454,37 +456,107 @@ def generateKingMoves(board, index, currentTurn):
 
 def makeMove(board, move): # also return the piece captured
     global blackPiecesLocation, whitePiecesLocation
-    
+
+    flag = 0
     clicked_piece = board[move[0]]
     captured_piece = board[move[1]]
     board[move[1]] = clicked_piece
     board[move[0]] = -1
     piece = board[move[1]]
 
+    if piece%7 != -1:
+        print(move)
+        displayGird(board)
+        print("piece captured", piece)
+
     #promotion handler
     if isPawn(piece) and ((move[1]//8 == 0) or (move[1]//8 == 7)):
         board[move[1]] = 7*(isWhite(piece))+2
+        flag = 2
 
     #castling handler
+    isCastling = False
     if isKing(piece) and ((move[1]%8 - move[0]%8 == 2) or (move[1]%8 - move[0]%8 == -2)):
-        if (move[1]%8 - move[0]%8 == 2):
+        isCastling = True
+        if (move[1]%8 - move[0]%8 == 2): # right castling
+            print("right castling done")
             board[move[1]-1] = board[((move[1]//8)+1)*8 - 1]
             board[((move[1]//8)+1)*8 - 1] = -1
             updatePieceLocationMoved(board[((move[1]//8)+1)*8 - 1], [((move[1]//8)+1)*8 - 1, move[1]-1])
-        else:
+            displayGird(board)
+            print(whitePiecesLocation, blackPiecesLocation)
+        else: # left castling
             board[move[1]+1] = board[((move[1]//8))*8]
             board[((move[1]//8))*8] = -1
-            updatePieceLocationMoved(board[((move[1]//8))*8], [((move[1]//8))*8, move[1]-1])
+            updatePieceLocationMoved(board[((move[1]//8))*8], [((move[1]//8))*8, move[1]+1])
+        flag = 1
+    print(piece, move, blackPiecesLocation, whitePiecesLocation)
+    if not isCastling:
+        updatePieceLocationMoved(piece, move)
+    updatedPieceLocationCaptured(captured_piece, move)
+    
+    return captured_piece, flag
 
-    updatePieceLocationMoved(piece, move)
-    print(whitePiecesLocation, blackPiecesLocation, move[0])
+def unmakeMove(board, move, captured_piece, flag): # the move should be as it was made before and not like reverse the move or something
+    if flag == 0:
+        clicked_piece = board[move[1]]
+        board[move[0]] = clicked_piece
+        board[move[1]] = captured_piece
+        restoreCapturePieceLocation(captured_piece, move)
+        # updatedPieceLocationCaptured(captured_piece, move)
+            
+    elif flag == 1:
+        if (move[1]%8 - move[0]%8 == 2):
+            print("~~~~~~~~~~~~~~TRYING TO CANCEL RIGHT CASTLIN~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            clicked_piece = board[move[1]]
+            board[move[0]] = clicked_piece
+            board[move[1]] = captured_piece
+            restoreCapturePieceLocation(captured_piece, move)
+            cancelRightCastelling(board, move)
+            displayGird(board)
+            
+        else:
+            clicked_piece = board[move[1]]
+            board[move[0]] = clicked_piece
+            board[move[1]] = captured_piece
+            restoreCapturePieceLocation(captured_piece, move)
+            cancelLeftCastelling(board, move)
+    elif flag == 2:
+        clicked_piece = board[move[1]]
+        if isWhite(clicked_piece):
+            board[move[0]] = WhitePawn
+        else:
+            board[move[0]] = BlackPawn
+        board[move[1]] = captured_piece
+        updatedPieceLocationCaptured(clicked_piece, [move[1], move[0]])
+
+def cancelRightCastelling(board, move):
+    global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved
+    if isWhite(board[move[1]]):
+        hasWhiteKingMoved = False
+        hasWhiteRightRookMoved = False
+    else:
+        hasBlackKingMoved = False
+        hasBlackRightRookMoved = False
+    board[((move[1]//8)+1)*8 - 1] = board[move[1]-1]
+    board[move[1]-1] = -1
+    updatePieceLocationMoved(board[move[1]-1], [move[1]-1, ((move[1]//8)+1)*8 - 1])
+def cancelLeftCastelling(board, move):
+    global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved
+    if isWhite(board[move[1]]):
+        hasWhiteKingMoved = False
+        hasWhiteLeftRookMoved = False
+    else:
+        hasBlackKingMoved = False
+        hasBlackLeftRookMoved = False
+    board[((move[1]//8))*8] =  board[move[1]+1]
+    board[move[1]+1] = -1
+    updatePieceLocationMoved(board[move[1]+1], [move[1]+1, ((move[1]//8))*8])
+def updatedPieceLocationCaptured(captured_piece,move):
     if isWhite(captured_piece):
         whitePiecesLocation.remove(move[1])
     elif isBlack(captured_piece):
         blackPiecesLocation.remove(move[1])
-    
-    return captured_piece
-
 def updatePieceLocationMoved(piece, move):
     global whitePiecesLocation, blackPiecesLocation
     if isWhite(piece):
@@ -493,4 +565,205 @@ def updatePieceLocationMoved(piece, move):
     elif isBlack(piece):
         blackPiecesLocation.remove(move[0])
         blackPiecesLocation.append(move[1])
+def restoreCapturePieceLocation(captured_piece, move):
+    global whitePiecesLocation, blackPiecesLocation
+    if isWhite(captured_piece):
+        whitePiecesLocation.append(move[1])
+    elif isBlack(captured_piece):
+        blackPiecesLocation.append(move[1])
+def restoreMovedPieceLocation(piece, move):
+    global whitePiecesLocation, blackPiecesLocation
+    if isWhite(piece):
+        whitePiecesLocation.remove([move[1]])
+        whitePiecesLocation.append(move[0])
+    elif isBlack(piece):
+        whitePiecesLocation.remove([move[1]])
+        whitePiecesLocation.append(move[0])
 
+
+
+
+PawnValue = 100
+KnightValue = 320
+BishopValue = 330
+RookValue = 500
+QueenValue = 900
+KingValue = 20000
+
+pawn_heatmap = [
+    0,  0,  0,  0,  0,  0,  0,  0,
+    50, 50, 50, 50, 50, 50, 50, 50,
+    10, 10, 20, 30, 30, 20, 10, 10,
+    5,  5, 10, 25, 25, 10,  5,  5,
+    0,  0,  0, 20, 20,  0,  0,  0,
+    5, -5,-10,  0,  0,-10, -5,  5,
+    5, 10, 10,-20,-20, 10, 10,  5,
+    0,  0,  0,  0,  0,  0,  0,  0
+]
+
+pawn_heatmap_opponent = [
+    0,  0,  0,  0,  0,  0,  0,  0,
+    5, 10, 10,-20,-20, 10, 10,  5,
+    5, -5,-10,  0,  0,-10, -5,  5,
+    0,  0,  0, 20, 20,  0,  0,  0,
+    5,  5, 10, 25, 25, 10,  5,  5,
+    10, 10, 20, 30, 30, 20, 10, 10,
+    50, 50, 50, 50, 50, 50, 50, 50,
+    0,  0,  0, 0, 0, 0, 0, 0
+
+]
+
+knight_heatmap = [
+    -50, -40, -30, -30, -30, -30, -40, -50,
+    -40, -20,  0,   0,   0,   0,  -20, -40,
+    -30,  0,   10,  15,  15,  10,  0,  -30,
+    -30,  5,   15,  20,  20,  15,  5,  -30,
+    -30,  0,   15,  20,  20,  15,  0,  -30,
+    -30,  5,   10,  15,  15,  10,  5,  -30,
+    -40, -20,  0,   5,   5,   0,  -20, -40,
+    -50, -40, -30, -30, -30, -30, -40, -50
+]
+
+knight_heatmap_opponent = [
+    -50,-40,-30,-30,-30,-30,-40,-50,
+    -40,-20,  0,  5,  5,  0,-20,-40,
+    -30,  5, 10, 15, 15, 10,  5,-30,
+    -30,  0, 15, 20, 20, 15,  0,-30,
+    -30,  5, 15, 20, 20, 15,  5,-30,
+    -30,  0, 10, 15, 15, 10,  0,-30,
+    -40,-20,  0,  0,  0,  0,-20,-40,
+    -50,-40,-40,-50,-50,-40,-40,-50
+]
+
+bishop_heatmap = [
+    -20, -10, -10, -10, -10, -10, -10, -20,
+    -10,   0,   0,   0,   0,   0,   0, -10,
+    -10,   0,   5,  10,  10,   5,   0, -10,
+    -10,   5,   5,  10,  10,   5,   5, -10,
+    -10,   0,  10,  10,  10,  10,   0, -10,
+    -10,  10,  10,  10,  10,  10,  10, -10,
+    -10,   5,   0,   0,   0,   0,   5, -10,
+    -20, -10, -10, -10, -10, -10, -10, -20
+]
+
+bishop_heatmap_opponent = [
+    -20, -10, -10, -10, -10, -10, -10, -20,
+    -10,   5,   0,   0,   0,   0,   5, -10,
+    -10,  10,  10,  10,  10,  10,  10, -10,
+    -10,   0,  10,  10,  10,  10,   0, -10,
+    -10,   5,   5,  10,  10,   5,   5, -10,
+    -10,   0,   5,  10,  10,   5,   0, -10,
+    -10,   0,   0,   0,   0,   0,   0, -10,
+    -20, -10, -10, -10, -10, -10, -10, -20
+]
+
+rook_heatmap = [
+    0,  0,  0,  0,  0,  0,  0,  0,
+    5, 10, 10, 10, 10, 10, 10,  5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+    0,  0,  0,  5,  5,  0,  0,  0
+]
+
+rook_heatmap_opponent = [
+    0,  0,  0,  5,  5,  0,  0,  0,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+   -5,  0,  0,  0,  0,  0,  0, -5,
+    5, 10, 10, 10, 10, 10, 10,  5,
+    0,  0,  0,  0,  0,  0,  0,  0
+]
+
+queen_heatmap = [
+    -20,-10,-10, -5, -5,-10,-10,-20,
+    -10,  0,  0,  0,  0,  0,  0,-10,
+    -10,  0,  5,  5,  5,  5,  0,-10,
+    -5,   0,  5,  5,  5,  5,  0, -5,
+    0,    0,  5,  5,  5,  5,  0, -5,
+    -10,  5,  5,  5,  5,  5,  0,-10,
+    -10,  0,  5,  0,  0,  0,  0,-10,
+    -20,-10,-10, -5, -5,-10,-10,-20
+]
+queen_heatmap_opponent = [-20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 5, 0, 0, 0, 0, -10, -10, 5, 5, 5, 5, 5, 0, -10, 0, 0, 5, 5, 5, 5, 0, -5, -5, 0, 5, 5, 5, 5, 0, -5, -10, 0, 5, 5, 5, 5, 0, -10, -10, 0, 0, 0, 0, 0, 0, -10, -20, -10, -10, -5, -5, -10, -10, -20]
+
+king_middlegame_heatmap = [
+    -30, -40, -40, -50, -50, -40, -40, -30,
+    -30, -40, -40, -50, -50, -40, -40, -30,
+    -30, -40, -40, -50, -50, -40, -40, -30,
+    -30, -40, -40, -50, -50, -40, -40, -30,
+    -20, -30, -30, -40, -40, -30, -30, -20,
+    -10, -20, -20, -20, -20, -20, -20, -10,
+    20,  20,   0,   0,   0,   0,  20,  20,
+    20,  30,  10,   0,   0,  10,  30,  20
+]
+king_middlegame_heatmap_opponent = [
+    20,  30,  10,   0,   0,  10,  30,  20,
+    20,  20,   0,   0,   0,   0,  20,  20,
+   -10, -20, -20, -20, -20, -20, -20, -10,
+   -20, -30, -30, -40, -40, -30, -30, -20,
+   -30, -40, -40, -50, -50, -40, -40, -30,
+   -30, -40, -40, -50, -50, -40, -40, -30,
+   -30, -40, -40, -50, -50, -40, -40, -30,
+   -30, -40, -40, -50, -50, -40, -40, -30
+]
+
+king_endgame_heatmap=[
+    -50, -40, -30, -20, -20, -30, -40, -50,
+    -30, -20, -10,   0,   0, -10, -20, -30,
+    -30, -10,  20,  30,  30,  20, -10, -30,
+    -30, -10,  30,  40,  40,  30, -10, -30,
+    -30, -10,  30,  40,  40,  30, -10, -30,
+    -30, -10,  20,  30,  30,  20, -10, -30,
+    -30, -30,   0,   0,   0,   0, -30, -30,
+    -50, -30, -30, -30, -30, -30, -30, -50
+]
+king_endgame_heatmap_opponent = [
+    -50, -30, -30, -30, -30, -30, -30, -50,
+    -30, -30,   0,   0,   0,   0, -30, -30,
+    -30, -10,  20,  30,  30,  20, -10, -30,
+    -30, -10,  30,  40,  40,  30, -10, -30,
+    -30, -10,  30,  40,  40,  30, -10, -30,
+    -30, -10,  20,  30,  30,  20, -10, -30,
+    -30, -20, -10,   0,   0, -10, -20, -30,
+    -50, -40, -30, -20, -20, -30, -40, -50
+]
+
+def displayGird(board):
+    for row in range(8):
+        for col in range(8):
+            print(board[row*8+col], end = " ")
+        print()
+
+def evaluateBoard(board):
+    eval = 0
+    for location in range(64):
+        if isBlack(board[location]):
+            black_piece = board[location]
+            if isKing(black_piece):
+                eval-=(KingValue+king_middlegame_heatmap_opponent[location])
+            elif isQueen(black_piece):
+                eval-=(QueenValue+queen_heatmap_opponent[location])
+            elif isPawn(black_piece):
+                eval-=(PawnValue+pawn_heatmap_opponent[location])
+            elif isBishop(black_piece):
+                eval-=(BishopValue+bishop_heatmap_opponent[location])
+            elif isKnight(black_piece):
+                eval-=(KnightValue+knight_heatmap_opponent[location])
+        elif isWhite(board[location]):
+                white_piece = board[location]
+                if isKing(white_piece):
+                    eval+=(KingValue+king_middlegame_heatmap[location])
+                elif isQueen(white_piece):
+                    eval+=(QueenValue+queen_heatmap[location])
+                elif isPawn(white_piece):
+                    eval+=(PawnValue+pawn_heatmap[location])
+                elif isBishop(white_piece):
+                    eval+=(BishopValue+bishop_heatmap[location])
+                elif isKnight(white_piece):
+                    eval+=(KnightValue+knight_heatmap[location])
+    return eval

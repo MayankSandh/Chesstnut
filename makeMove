@@ -7,3 +7,6 @@ make sure to create a signal inside the functino which separatest the fake funct
 pawn promotion unmake
 
 castling unmake
+
+
+pawn crosses self pieces

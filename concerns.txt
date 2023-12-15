@@ -13,3 +13,5 @@ for virtual moves and castling constants, you can create antoher constant handle
 make sure kingCheck moves are somehow handled
 
 rook capture is equivalent to rook moved
+
+if piece of opponent is lower, then exchange more pieces

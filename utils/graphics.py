@@ -130,13 +130,6 @@ def generateBoard(board, screen):
         for col in range(8):
             drawSquare(board, 8*row + col, screen)
 
-    
-
-def unmakeMove(board, move, captured_piece): # the move should be as it was made before and not like reverse the move or something
-    clicked_piece = board[move[1]]
-    board[move[0]] = clicked_piece
-    board[move[1]] = captured_piece
-
 def getSquareFromClick(pos):
     x, y = pos
     row = y // SQUARE_SIZE
