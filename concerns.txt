@@ -23,3 +23,9 @@ i can't play for black some constants issue
 castling constant still not fixed
 
 keep track of king location in order to not search for king again and again
+
+legalsquarse funciton doesn't have a king block in the check block
+
+VERY IMPORTANT ERROR
+    THE UPDATE OF PIECELOCATION ONLY CONSIDERS THE ATTACK SPACE OF THE PIECE CLICKED, BUT FORGETS ABOUT THE DISCOVERY OF A SLIDING PIECE OR EVEN AN ENEMEY PIECE!
+    PINNED PIECE ALSO NOT WORKING CORRECTLY!
