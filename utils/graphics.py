@@ -141,3 +141,16 @@ def displayGird(board):
         for col in range(8):
             print(board[row*8+col], end = " ")
         print()
+
+def show_winner(result):
+    root = tk.Tk()
+    
+    if result == 0:
+        label = tk.Label(root, text="Black won", font=("Arial", 18))
+    elif result == 1:
+        label = tk.Label(root, text="White won", font=("Arial", 18))
+    else:
+        label = tk.Label(root, text="Invalid input", font=("Arial", 18))
+    
+    label.pack(padx=20, pady=20)
+    root.mainloop()

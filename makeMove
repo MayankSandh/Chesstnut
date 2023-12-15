@@ -10,3 +10,8 @@ castling unmake
 
 
 pawn crosses self pieces
+
+when rook is captured, consider rook moved
+
+
+when pawn promoted, handle the flag 

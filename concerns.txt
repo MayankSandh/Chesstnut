@@ -15,3 +15,7 @@ make sure kingCheck moves are somehow handled
 rook capture is equivalent to rook moved
 
 if piece of opponent is lower, then exchange more pieces
+
+implement book moves if possible
+
+i can't play for black some constants issue

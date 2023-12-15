@@ -474,19 +474,42 @@ def makeMove(board, move): # also return the piece captured
 
     #castling handler
     isCastling = False
-    if isKing(piece) and ((move[1]%8 - move[0]%8 == 2) or (move[1]%8 - move[0]%8 == -2)):
-        isCastling = True
-        if (move[1]%8 - move[0]%8 == 2): # right castling
-            board[move[1]-1] = board[((move[1]//8)+1)*8 - 1]
-            board[((move[1]//8)+1)*8 - 1] = -1
-            updatePieceLocationMoved(board[((move[1]//8)+1)*8 - 1], [((move[1]//8)+1)*8 - 1, move[1]-1])
-        else: # left castling
-            board[move[1]+1] = board[((move[1]//8))*8]
-            board[((move[1]//8))*8] = -1
-            updatePieceLocationMoved(board[((move[1]//8))*8], [((move[1]//8))*8, move[1]+1])
-        flag = 1
-    if not isCastling:
-        updatePieceLocationMoved(piece, move)
+    if isKing(piece):
+        changeKingStatus(piece)
+        if ((move[1]%8 - move[0]%8 == 2) or (move[1]%8 - move[0]%8 == -2)):
+            isCastling = True
+            if (move[1]%8 - move[0]%8 == 2): # right castling
+                board[move[1]-1] = board[((move[1]//8)+1)*8 - 1]
+                board[((move[1]//8)+1)*8 - 1] = -1
+                updatePieceLocationMoved(board[move[1]-1], [((move[1]//8)+1)*8 - 1, move[1]-1])
+                changeRightRookStatus(board[move[1]-1])
+            else: # left castling
+                board[move[1]+1] = board[((move[1]//8))*8]
+                board[((move[1]//8))*8] = -1
+                updatePieceLocationMoved(board[move[1]+1], [((move[1]//8))*8, move[1]+1])
+                changeLeftRookStatus(board[move[1]+1])
+            flag = 1
+
+    if isRook(piece):
+        changeRookStatus(piece, move[0])
+
+    # rook capture handler  # can be written more efficiently
+    if isRook(captured_piece):
+        if currentTurn:
+            if not (hasBlackLeftRookMoved and hasBlackRightRookMoved):
+                if move[1]//8 == (0+7*OPP): # the captured rook is not the unmoved one
+                    if move[1]%8 == 0 and not hasBlackLeftRookMoved:
+                        changeLeftRookStatus(captured_piece)
+                    elif move[1]%8 == 7 and not hasBlackRightRookMoved:
+                        changeRightRookStatus(captured_piece)
+        else:
+            if not (hasWhiteLeftRookMoved and hasWhiteRightRookMoved):
+                if move[1]//8 == ((7-7*OPP)): # the captured rook is not the unmoved one
+                    if move[1]%8 == 0 and not hasWhiteLeftRookMoved:
+                        changeLeftRookStatus(captured_piece)
+                    elif move[1]%8 == 7 and not hasWhiteRightRookMoved:
+                        changeRightRookStatus(captured_piece)
+    updatePieceLocationMoved(piece, move)
     updatedPieceLocationCaptured(captured_piece, move)
     
     return captured_piece, flag
@@ -497,6 +520,7 @@ def unmakeMove(board, move, captured_piece, flag): # the move should be as it wa
         board[move[0]] = clicked_piece
         board[move[1]] = captured_piece
         restoreCapturePieceLocation(captured_piece, move)
+        # restoreMovedPieceLocation(clicked_piece, move)
         # updatedPieceLocationCaptured(captured_piece, move)
             
     elif flag == 1:
@@ -505,12 +529,14 @@ def unmakeMove(board, move, captured_piece, flag): # the move should be as it wa
             board[move[0]] = clicked_piece
             board[move[1]] = captured_piece
             restoreCapturePieceLocation(captured_piece, move)
+            # restoreMovedPieceLocation(clicked_piece, move)
             cancelRightCastelling(board, move)
             
         else:
             clicked_piece = board[move[1]]
             board[move[0]] = clicked_piece
             board[move[1]] = captured_piece
+            # restoreMovedPieceLocation(clicked_piece, move)
             restoreCapturePieceLocation(captured_piece, move)
             cancelLeftCastelling(board, move)
     elif flag == 2:
