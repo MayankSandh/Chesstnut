@@ -8,6 +8,7 @@ from time import time
 from copy import deepcopy
 from utils import eval
 
+
 # Constants
 
 screen = pygame.display.set_mode((graphics.WIDTH, graphics.HEIGHT))
@@ -20,7 +21,7 @@ example_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
 # example_fen = '8/8/8/8/8/8/8/5B2'
 board = logic.readFen(example_fen)
 # board[5] = logic.WhiteRook
-logic.displayGird(logic.whiteAttackSquares)
+# logic.displayGird(logic.whiteAttackSquares)
 # board[9] = logic.WhitePawn
 
 def printMyStats(board, index, prev_index):
@@ -31,7 +32,6 @@ def printMyStats(board, index, prev_index):
     print("constants status:, ")
     logic.printConstants()
     print("----------------------------------------------------------")
-
 def printCompStats(board, index, prev_index):
     print("\n--------------------COMPUTER MOVE ------------------------")
     print("piece_moved is: ", board[index])
@@ -40,6 +40,9 @@ def printCompStats(board, index, prev_index):
     print("constants status:, ")
     logic.printConstants()
     print("----------------------------------------------------------")
+def printStats(board):
+    logic.displayGird(board)
+    logic.printConstants()
 
 def mouseClickHandler(board, firstclick, index, prev_index):
     if firstclick:
@@ -87,7 +90,7 @@ def mouseClickHandler(board, firstclick, index, prev_index):
                                     logic.changeLeftRookStatus(captured_piece)
                                 elif index%8 == 7 and not logic.hasWhiteRightRookMoved:
                                     logic.changeRightRookStatus(captured_piece)
-                printMyStats(board, index, prev_index)
+                # printMyStats(board, index, prev_index)
                 
                 if currentTurn:
                     return False
@@ -99,17 +102,13 @@ def mouseClickHandler(board, firstclick, index, prev_index):
                     return True
                 else:
                     return False
-def printStats(board):
-    logic.displayGird(board)
-    logic.printConstants()
 
-def computerMakeMove(board, depth, currentTurn, og_depth):
-    
+def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
     if (depth == 0):
         return eval.evaluateBoard(board)
     bestMove = list()
     if currentTurn:
-        bestEval = -1000000
+        bestEval = -100000
         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
         # print(logic.generateAllMoves(board, currentTurn))
         for move in logic.generateAllMoves(board, currentTurn):
@@ -121,17 +120,19 @@ def computerMakeMove(board, depth, currentTurn, og_depth):
             capture, flag = logic.makeMove(board, move)
             # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
             # printStats(board)
-            val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
+            val = computerMakeMove(board, depth-1, (not currentTurn), og_depth, alpha, beta)
             if val > bestEval:
                 bestMove = move
                 bestEval = val
             logic.unmakeMove(board, move, capture, flag)
             logic.restoreConstants(constants)
+            alpha = max(alpha, val)
+            if beta<=alpha:
+                break
             # print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
             # printStats(board)
-            # logic.printConstants()
     else:
-        bestEval = 1000000
+        bestEval = 100000
         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
         # print(logic.generateAllMoves(board, currentTurn))
         for move in logic.generateAllMoves(board, currentTurn):
@@ -142,12 +143,15 @@ def computerMakeMove(board, depth, currentTurn, og_depth):
             capture, flag = logic.makeMove(board, move)
             # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
             # printStats(board)
-            val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
+            val = computerMakeMove(board, depth-1, (not currentTurn), og_depth, alpha, beta)
             if val < bestEval:
                 bestMove = move
                 bestEval = val
             logic.unmakeMove(board, move, capture, flag)
             logic.restoreConstants(constants)
+            beta = min(beta, val)
+            if beta<=alpha:
+                break
             # print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
             # printStats(board)
     if (depth == og_depth):
@@ -192,125 +196,27 @@ while running:
         else:
             depth = 3
             starttime = time()
-            print("before computer move")
-            logic.displayGird(board)
-            move, bestEval = computerMakeMove(board, depth, currentTurn, depth)
-            if (bestEval > 15000):
-                graphics.show_winner(1)
-                pygame.quit()
-                sys.exit()
-            elif (bestEval < -15000):
-                graphics.show_winner(0)
-                pygame.quit()
-                sys.exit()
+            # print("before computer move")
+            # logic.displayGird(board)
+            move, bestEval = computerMakeMove(board, depth, currentTurn, depth, -10000, 10000)
+            # print(move,bestEval)
+            # if (bestEval > 15000):
+            #     graphics.show_winner(1)
+            #     pygame.quit()
+            #     sys.exit()
+            # elif (bestEval < -15000):
+            #     graphics.show_winner(0)
+            #     pygame.quit()
+            #     sys.exit()
             logic.makeMove(board, move)
             print("Time taken by computer:-", time()-starttime)
             graphics.generateBoard(board, screen)
-            printCompStats(board, move[1], move[0])
+            # printCompStats(board, move[1], move[0])
             if currentTurn:
                 currentTurn = False
             else:
                 currentTurn = True
     pygame.display.flip()
 
-# while running:
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT:
-#             running = False
-#         if not (currentTurn ^ logic.ME):
-#             # if event.type == pygame.MOUSEBUTTONDOWN:
-#             #     if event.button == 1:
-#             #         clicked_pos = graphics.getSquareFromClick(pygame.mouse.get_pos())
-#             #         row, col = clicked_pos
-#             #         index = row*8+col
-#             #         if firstclick:
-#             #             if board[index]//7 != currentTurn:
-#             #                 continue
-#             #             prev_index = index
-#             #             mouseClickHandler(board, firstclick, index, prev_index)
-#             #             firstclick = False
-                        
-#             #         else:
-#             #             if board[index]//7 == currentTurn:
-#             #                 prev_index = index
-#             #                 mouseClickHandler(board, firstclick, index, prev_index)
-#             #                 continue
-#             #             currentTurn = mouseClickHandler(board, firstclick, index, prev_index)
-#             #             firstclick = True
-#             if time() - starttime >0.5:
-#                 move = computerMakeMove(board, currentTurn)
-#                 logic.makeMove(board, move)
-#                 graphics.generateBoard(board, screen)
-                
-#                 if currentTurn:
-#                     currentTurn = False
-#                 else:
-#                     currentTurn = True
-#                 starttime = time()
-#         else:
-#             if time() - starttime >0.5:
-#                 move = computerMakeMove(board, currentTurn)
-#                 logic.makeMove(board, move)
-#                 graphics.generateBoard(board, screen)
-                
-#                 if currentTurn:
-#                     currentTurn = False
-#                 else:
-#                     currentTurn = True
-#                 starttime = time()
-#     pygame.display.flip()
-
 pygame.quit()
 sys.exit()
-
-
-
-
-# def computerMakeMove(board, depth, currentTurn, og_depth):
-#     if (depth == 0):
-#         return eval.evaluateBoard(board)
-#     bestMove = list()
-#     if currentTurn:
-#         bestEval = -1000000
-#         print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
-#         print(logic.generateAllMoves(board, currentTurn))
-#         for move in logic.generateAllMoves(board, currentTurn):
-#             constants = deepcopy(logic.fetchConstants())   
-#             piece = board[move[0]]
-#             print("Board Stats before making move:", move, piece, "depth: ", depth)
-#             printStats(board)
-#             capture, flag = logic.makeMove(board, move)
-#             print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
-#             printStats(board)
-#             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
-#             if val > bestEval:
-#                 bestMove = move
-#                 bestEval = val
-#             logic.unmakeMove(board, move, capture, flag)
-#             logic.restoreConstants(constants)
-#             print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
-#             printStats(board)
-#     else:
-#         bestEval = 1000000
-#         print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
-#         print(logic.generateAllMoves(board, currentTurn))
-#         for move in logic.generateAllMoves(board, currentTurn):
-#             constants = deepcopy(logic.fetchConstants())
-#             piece = board[move[0]]
-#             print("Board Stats before making move:", move, piece, "depth: ", depth)
-#             printStats(board)
-#             capture, flag = logic.makeMove(board, move)
-#             print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
-#             printStats(board)
-#             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth)
-#             if val < bestEval:
-#                 bestMove = move
-#                 bestEval = val
-#             logic.unmakeMove(board, move, capture, flag)
-#             logic.restoreConstants(constants)
-#             print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
-#             printStats(board)
-#     if (depth == og_depth):
-#         return bestMove, bestEval
-#     else:
-#         return bestEval
