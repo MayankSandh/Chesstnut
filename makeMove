@@ -17,3 +17,11 @@ when rook is captured, consider rook moved
 when pawn promoted, handle the flag 
 
 make sure in the kingcheckhandler, you remove all the self square move in the attacking squares part, because if king can kill a checking piece, it might not detect the capture
+
+king avoiding opponent attacked squares is currently not hardcoded
+
+just changed such that when checking for sliding pieces, you initialise the CheckingFOrPinnedPiece constant as false 
+
+also, 53 is weirdly a pinned piece still
+
+piece after getting pinned can still move to remove check (if they attack that particular )

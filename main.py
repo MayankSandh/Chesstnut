@@ -198,6 +198,7 @@ while running:
             starttime = time()
             # print("before computer move")
             # logic.displayGird(board)
+            # logic.printConstants()
             move, bestEval = computerMakeMove(board, depth, currentTurn, depth, -10000, 10000)
             # print(move,bestEval)
             # if (bestEval > 15000):
