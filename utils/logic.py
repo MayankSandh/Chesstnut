@@ -261,12 +261,18 @@ def legalMoves(board, index, currentTurn):
         if isKingInCheck(blackKingLocation, currentTurn):
             KingChecked = True
         king_index = blackKingLocation
-    PinnedPieces = set(KingPinHandler(board, king_index, currentTurn)) # 
+    PinnedPieces, PinnedMoves = KingPinHandler(board, king_index, currentTurn) # 
+    PinnedPieces = set(PinnedPieces)
+    PinnedMoves = set(PinnedMoves)
     piece = board[index]
     if not KingChecked:
         if (piece)//7 == currentTurn:
             if index in PinnedPieces:
-                return list()
+                moves = list()
+                for PMove in PinnedMoves:
+                    if PMove[0] == index:
+                        moves.append(PMove)
+                return moves
             if isSlidingPiece(piece):
                 return (generateSlidingMoves(board, index, currentTurn))
             if isKnight(piece):
@@ -277,7 +283,11 @@ def legalMoves(board, index, currentTurn):
                 return (generateKingMoves(board, index, currentTurn))
     else:
         allMovesList = list()
-        attackingSquares = AttackSquaresFinderDuringCheck(board, king_index, currentTurn) # is being called everytimem, needs to be optimised
+        attackingSquares, doubleCheck = AttackSquaresFinderDuringCheck(board, king_index, currentTurn) # is being called everytimem, needs to be optimised
+        if doubleCheck == 2:
+            if isKing(piece):
+                allMovesList+=(generateKingMovesInCheck(board, index, currentTurn))
+            return allMovesList
         if index not in PinnedPieces:
             piece = board[index]
             if (piece)//7 == currentTurn:
@@ -316,7 +326,7 @@ def generateAllMoves(board, currentTurn):
         if isKingInCheck(blackKingLocation, currentTurn):
             KingChecked = True
         index = blackKingLocation
-    PinnedPieces = set(KingPinHandler(board, index, currentTurn))
+    PinnedPieces, PinnedMoves = (KingPinHandler(board, index, currentTurn))
     if not KingChecked:
         allMovesList = list()
         if currentTurn:
@@ -332,6 +342,10 @@ def generateAllMoves(board, currentTurn):
                             allMovesList+=(generatePawnMoves(board, startSquare, currentTurn))
                         if isKing(piece):
                             allMovesList+=(generateKingMoves(board, startSquare, currentTurn))
+                else:
+                    for PMove in PinnedMoves:
+                        if PMove[0] == startSquare:
+                            allMovesList.append(PMove)
             return allMovesList
         else:   
             for startSquare in blackPiecesLocation: # can optimise here
@@ -346,6 +360,10 @@ def generateAllMoves(board, currentTurn):
                             allMovesList+=(generatePawnMoves(board, startSquare, currentTurn))
                         if isKing(piece):
                             allMovesList+=(generateKingMoves(board, startSquare, currentTurn))
+                else:
+                    for PMove in PinnedMoves:
+                        if PMove[0] == startSquare:
+                            allMovesList.append(PMove)
             return allMovesList
     else:
         return KingCheckHandler(index, board, currentTurn)
@@ -383,6 +401,8 @@ def generateKingMoves(board, index, currentTurn):
                     for i in range(1,4):
                         if board[ctr]!= -1:
                             break
+                        if (i != 3) and (isKingInCheck(ctr, True)):
+                            break
                         ctr-=1
                     else:
                         LeftCastlingPossible = True
@@ -393,6 +413,8 @@ def generateKingMoves(board, index, currentTurn):
                     ctr = index+1
                     for i in range(5,7):
                         if board[ctr]!= -1:
+                            break
+                        if (isKingInCheck(ctr, True)):
                             break
                         ctr+=1
                     else:
@@ -407,6 +429,8 @@ def generateKingMoves(board, index, currentTurn):
                     for i in range(1,4):
                         if board[ctr]!= -1:
                             break
+                        if (i != 3) and (isKingInCheck(ctr, False)):
+                            break
                         ctr-=1
                     else:
                         LeftCastlingPossible = True
@@ -417,6 +441,8 @@ def generateKingMoves(board, index, currentTurn):
                     ctr = index+1
                     for i in range(5,7):
                         if board[ctr]!= -1:
+                            break
+                        if (isKingInCheck(ctr, False)):
                             break
                         ctr+=1
                     else:
@@ -432,6 +458,8 @@ def generateKingMoves(board, index, currentTurn):
                     for i in range(1,4):
                         if board[ctr]!= -1:
                             break
+                        if (i != 3) and (isKingInCheck(ctr, False)):
+                            break
                         ctr+=1
                     else:
                         RightCastlingPossible = True
@@ -442,6 +470,8 @@ def generateKingMoves(board, index, currentTurn):
                     ctr = index-1
                     for i in range(5,7):
                         if board[ctr]!= -1:
+                            break
+                        if (isKingInCheck(ctr, False)):
                             break
                         ctr-=1
                     else:
@@ -456,6 +486,8 @@ def generateKingMoves(board, index, currentTurn):
                     for i in range(1,4):
                         if board[ctr]!= -1:
                             break
+                        if (i != 3) and (isKingInCheck(ctr, True)):
+                            break
                         ctr+=1
                     else:
                         RightCastlingPossible = True
@@ -466,6 +498,8 @@ def generateKingMoves(board, index, currentTurn):
                     ctr = index-1
                     for i in range(5,7):
                         if board[ctr]!= -1:
+                            break
+                        if (isKingInCheck(ctr, True)):
                             break
                         ctr-=1
                     else:
@@ -852,10 +886,11 @@ def AttackSquaresFinderDuringCheck(board, index, currentTurn):
                         if (board[targetSquare] == WhitePawn):
                             attackingSquares.add(targetSquare)
                             break
-        return attackingSquares
+        return attackingSquares, doubleCheck
 
 def KingCheckHandler(index, board, currentTurn):
     if ME:
+        allMovesList = list()
         if currentTurn:
             attackingSquares = set()
             doubleCheck = 0
@@ -892,6 +927,8 @@ def KingCheckHandler(index, board, currentTurn):
                                 if startCheckingIfPiecePinned:
                                     startCheckingIfPiecePinned = False
                                     pinnedPieceList.add(pinnedIndex)
+                                    if isQueen(board[pinnedIndex]) or isRook(board[pinnedIndex]):
+                                        allMovesList.append([pinnedIndex, targetSquare])
                                     pinnedIndex = -1
                                 else:
                                     doubleCheck+=1
@@ -902,6 +939,10 @@ def KingCheckHandler(index, board, currentTurn):
                                 if startCheckingIfPiecePinned:
                                     startCheckingIfPiecePinned = False
                                     pinnedPieceList.add(pinnedIndex)
+                                    if isQueen(board[pinnedIndex]) or isRook(board[pinnedIndex]):
+                                        allMovesList.append([pinnedIndex, targetSquare])
+                                    if isPawn(board[pinnedIndex]) and ((pinnedIndex - 7 == targetSquare) or (pinnedIndex - 9 == targetSquare)):
+                                        allMovesList.append([pinnedIndex, targetSquare])
                                     pinnedIndex = -1
                                 else:
                                     doubleCheck+=1
@@ -915,8 +956,8 @@ def KingCheckHandler(index, board, currentTurn):
                         if (board[targetSquare] == BlackPawn):
                             attackingSquares.add(targetSquare)
                             break
+            king_move_list = list()
             for direction in DirectionOffsets:
-                king_move_list = list()
                 targetSquare = index+direction
                 if squareWithinBounds(index, direction):
                     if board[targetSquare]//7 == currentTurn:
@@ -963,6 +1004,8 @@ def KingCheckHandler(index, board, currentTurn):
                                 if startCheckingIfPiecePinned:
                                     startCheckingIfPiecePinned = False
                                     pinnedPieceList.add(pinnedIndex)
+                                    if isQueen(board[pinnedIndex]) or isRook(board[pinnedIndex]):
+                                        allMovesList.append([pinnedIndex, targetSquare])
                                     pinnedIndex = -1
                                 else:
                                     doubleCheck+=1
@@ -973,6 +1016,10 @@ def KingCheckHandler(index, board, currentTurn):
                                 if startCheckingIfPiecePinned:
                                     startCheckingIfPiecePinned = False
                                     pinnedPieceList.add(pinnedIndex)
+                                    if isQueen(board[pinnedIndex]) or isBishop(board[pinnedIndex]):
+                                        allMovesList.append([pinnedIndex, targetSquare])
+                                    if isPawn(board[pinnedIndex]) and ((pinnedIndex + 7 == targetSquare) or (pinnedIndex + 9 == targetSquare)):
+                                        allMovesList.append([pinnedIndex, targetSquare])
                                     pinnedIndex = -1
                                 else:
                                     doubleCheck+=1
@@ -986,8 +1033,8 @@ def KingCheckHandler(index, board, currentTurn):
                         if (board[targetSquare] == WhitePawn):
                             attackingSquares.add(targetSquare)
                             break
+            king_move_list = list()
             for direction in DirectionOffsets: # KING MOVES
-                king_move_list = list()
                 targetSquare = index+direction
                 if squareWithinBounds(index, direction):
                     if board[targetSquare]//7 == currentTurn:
@@ -996,7 +1043,7 @@ def KingCheckHandler(index, board, currentTurn):
                         king_move_list.append([index, targetSquare])
             if doubleCheck == 2:
                 return king_move_list
-        allMovesList = list()
+        
         if currentTurn:
             for startSquare in whitePiecesLocation:
                 if startSquare not in pinnedPieceList:
@@ -1024,10 +1071,13 @@ def KingCheckHandler(index, board, currentTurn):
 def KingPinHandler(board, index, currentTurn):
     if currentTurn:
         pinnedPieceList = list()
+        pinnedMoves = list()
         pinnedIndex = -1
         startCheckingIfPiecePinned = False
         for directionIndex in range(0, 8): # SLIDING PIECE CHECK DETECTOR + PINNED PIECE DETECTOR
-            move_list = list()
+            move_list = list()  
+            startCheckingIfPiecePinned = False
+            pinnedIndex = -1
             for n in range(numSquaresToEdge[index][directionIndex]):
                 targetSquare = index + DirectionOffsets[directionIndex]*(n+1)
                 pieceOnTargetSquare = board[targetSquare]
@@ -1046,6 +1096,8 @@ def KingPinHandler(board, index, currentTurn):
                             if startCheckingIfPiecePinned:
                                 startCheckingIfPiecePinned = False
                                 pinnedPieceList.append(pinnedIndex)
+                                if isQueen(board[pinnedIndex]) or isRook(board[pinnedIndex]):
+                                    pinnedMoves.append([pinnedIndex, targetSquare])
                                 pinnedIndex = -1
                         break
                     else:
@@ -1053,14 +1105,21 @@ def KingPinHandler(board, index, currentTurn):
                             if startCheckingIfPiecePinned:
                                 startCheckingIfPiecePinned = False
                                 pinnedPieceList.append(pinnedIndex)
+                                if isQueen(board[pinnedIndex]) or isBishop(board[pinnedIndex]):
+                                    pinnedMoves.append([pinnedIndex, targetSquare])
+                                if isPawn(board[pinnedIndex]) and ((pinnedIndex - 7 == targetSquare) or (pinnedIndex - 9 == targetSquare)):
+                                    pinnedMoves.append([pinnedIndex, targetSquare])
                                 pinnedIndex = -1
                         break
     else:
         pinnedPieceList = list()
+        pinnedMoves = list()
         pinnedIndex = -1
         startCheckingIfPiecePinned = False
         for directionIndex in range(0, 8): # SLIDING PIECE CHECK DETECTOR + PINNED PIECE DETECTOR
             move_list = list()
+            startCheckingIfPiecePinned = False
+            pinnedIndex = -1
             for n in range(numSquaresToEdge[index][directionIndex]):
                 targetSquare = index + DirectionOffsets[directionIndex]*(n+1)
                 pieceOnTargetSquare = board[targetSquare]
@@ -1079,6 +1138,8 @@ def KingPinHandler(board, index, currentTurn):
                             if startCheckingIfPiecePinned:
                                 startCheckingIfPiecePinned = False
                                 pinnedPieceList.append(pinnedIndex)
+                                if isQueen(board[pinnedIndex]) or isRook(board[pinnedIndex]):
+                                    pinnedMoves.append([pinnedIndex, targetSquare])
                                 pinnedIndex = -1
                         break
                     else:
@@ -1086,9 +1147,13 @@ def KingPinHandler(board, index, currentTurn):
                             if startCheckingIfPiecePinned:
                                 startCheckingIfPiecePinned = False
                                 pinnedPieceList.append(pinnedIndex)
+                                if isQueen(board[pinnedIndex]) or isBishop(board[pinnedIndex]):
+                                    pinnedMoves.append([pinnedIndex, targetSquare])
+                                if isPawn(board[pinnedIndex]) and ((pinnedIndex - 7 == targetSquare) or (pinnedIndex - 9 == targetSquare)):
+                                    pinnedMoves.append([pinnedIndex, targetSquare])
                                 pinnedIndex = -1
                         break
-    return pinnedPieceList
+    return pinnedPieceList, pinnedMoves
 
 
 def pawnAttackSquares(board, index, currentTurn):

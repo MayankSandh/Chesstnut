@@ -6,7 +6,7 @@ from utils import graphics
 from random import randint
 from time import time
 from copy import deepcopy
-from utils import eval
+from utils import eval, misc
 
 
 # Constants
@@ -90,7 +90,8 @@ def mouseClickHandler(board, firstclick, index, prev_index):
                                     logic.changeLeftRookStatus(captured_piece)
                                 elif index%8 == 7 and not logic.hasWhiteRightRookMoved:
                                     logic.changeRightRookStatus(captured_piece)
-                # printMyStats(board, index, prev_index)
+                # printMyStafts(board, index, prev_index)
+                misc.write_to_file("ME: "+str(board[index]) +" --> "+ str([(prev_index//8, prev_index%8), (index//8, index%8)])+"\n")
                 
                 if currentTurn:
                     return False
@@ -147,6 +148,8 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
             if val < bestEval:
                 bestMove = move
                 bestEval = val
+                # if (depth == og_depth):
+                #     print("best move", bestMove, "bestEval, ", bestEval, currentTurn)
             logic.unmakeMove(board, move, capture, flag)
             logic.restoreConstants(constants)
             beta = min(beta, val)
@@ -213,6 +216,7 @@ while running:
             print("Time taken by computer:-", time()-starttime)
             graphics.generateBoard(board, screen)
             # printCompStats(board, move[1], move[0])
+            misc.write_to_file("COMP: "+str(board[move[1]]) +" --> "+ str([(move[0]//8, move[0]%8), (move[1]//8, move[1]%8)])+"\n")
             if currentTurn:
                 currentTurn = False
             else:
