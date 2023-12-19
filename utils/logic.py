@@ -263,7 +263,6 @@ def legalMoves(board, index, currentTurn):
         king_index = blackKingLocation
     PinnedPieces, PinnedMoves = KingPinHandler(board, king_index, currentTurn) # 
     PinnedPieces = set(PinnedPieces)
-    PinnedMoves = set(PinnedMoves)
     piece = board[index]
     if not KingChecked:
         if (piece)//7 == currentTurn:

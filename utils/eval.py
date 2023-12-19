@@ -53,6 +53,20 @@ def isPawn(piece_code):
     else:
         return False
 
+def getPieceValue(piece):
+    if isKing(piece):
+        return 20000
+    elif isQueen(piece):
+        return 900
+    elif isRook(piece):
+        return 500
+    elif isKnight(piece):
+        return 320
+    elif isBishop(piece):
+        return 330
+    elif isPawn(piece):
+        return 100
+    
 
 pawn_heatmap = [
     0,  0,  0,  0,  0,  0,  0,  0,
@@ -64,7 +78,6 @@ pawn_heatmap = [
     5, 10, 10,-20,-20, 10, 10,  5,
     0,  0,  0,  0,  0,  0,  0,  0
 ]
-
 pawn_heatmap_opponent = [
     0,  0,  0,  0,  0,  0,  0,  0,
     5, 10, 10,-20,-20, 10, 10,  5,
@@ -87,7 +100,6 @@ knight_heatmap = [
     -40, -20,  0,   5,   5,   0,  -20, -40,
     -50, -40, -30, -30, -30, -30, -40, -50
 ]
-
 knight_heatmap_opponent = [
     -50,-40,-30,-30,-30,-30,-40,-50,
     -40,-20,  0,  5,  5,  0,-20,-40,
@@ -109,7 +121,6 @@ bishop_heatmap = [
     -10,   5,   0,   0,   0,   0,   5, -10,
     -20, -10, -10, -10, -10, -10, -10, -20
 ]
-
 bishop_heatmap_opponent = [
     -20, -10, -10, -10, -10, -10, -10, -20,
     -10,   5,   0,   0,   0,   0,   5, -10,
@@ -131,7 +142,6 @@ rook_heatmap = [
    -5,  0,  0,  0,  0,  0,  0, -5,
     0,  0,  0,  5,  5,  0,  0,  0
 ]
-
 rook_heatmap_opponent = [
     0,  0,  0,  5,  5,  0,  0,  0,
    -5,  0,  0,  0,  0,  0,  0, -5,
@@ -153,7 +163,14 @@ queen_heatmap = [
     -10,  0,  5,  0,  0,  0,  0,-10,
     -20,-10,-10, -5, -5,-10,-10,-20
 ]
-queen_heatmap_opponent = [-20, -10, -10, -5, -5, -10, -10, -20, -10, 0, 5, 0, 0, 0, 0, -10, -10, 5, 5, 5, 5, 5, 0, -10, 0, 0, 5, 5, 5, 5, 0, -5, -5, 0, 5, 5, 5, 5, 0, -5, -10, 0, 5, 5, 5, 5, 0, -10, -10, 0, 0, 0, 0, 0, 0, -10, -20, -10, -10, -5, -5, -10, -10, -20]
+queen_heatmap_opponent = [-20, -10, -10, -5, -5, -10, -10, -20, 
+                          -10, 0, 5, 0, 0, 0, 0, -10, 
+                          -10, 5, 5, 5, 5, 5, 0, -10, 
+                          0, 0, 5, 5, 5, 5, 0, -5, 
+                          -5, 0, 5, 5, 5, 5, 0, -5, 
+                          -10, 0, 5, 5, 5, 5, 0, -10, 
+                          -10, 0, 0, 0, 0, 0, 0, -10, 
+                          -20, -10, -10, -5, -5, -10, -10, -20]
 
 king_middlegame_heatmap = [
     -30, -40, -40, -50, -50, -40, -40, -30,
@@ -225,3 +242,26 @@ def evaluateBoard(board):
                 elif isKnight(white_piece):
                     eval+=(KnightValue+knight_heatmap[location])
     return eval
+
+
+def MoveOrder(board, moves, currentTurn, blackAttackSquares, whiteAttackSquares):
+    if not moves:
+        return moves
+    moveScores = list()
+    for move in moves:
+        score = 0
+        capture_piece = board[move[1]]
+        clicked_piece = board[move[0]]
+        if not isBlankSquare(capture_piece):
+            score = 10*getPieceValue(capture_piece) - getPieceValue(clicked_piece)
+        # promotion insertion
+            
+        if currentTurn:
+            if move[1] in blackAttackSquares:
+                score-=getPieceValue(clicked_piece)
+        else:
+            if move[1] in whiteAttackSquares:
+                score-=getPieceValue(clicked_piece)
+        moveScores.append(score)
+    sorted_moves = [pair[0] for pair in sorted(list(zip(moves, moveScores)), key=lambda x: x[1])]
+    return sorted_moves

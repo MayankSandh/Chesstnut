@@ -112,7 +112,8 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
         bestEval = -100000
         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
         # print(logic.generateAllMoves(board, currentTurn))
-        for move in logic.generateAllMoves(board, currentTurn):
+        moves = eval.MoveOrder(board, logic.generateAllMoves(board, currentTurn), currentTurn, logic.blackAttackSquares, logic.whiteAttackSquares)
+        for move in moves:
             constants = deepcopy(logic.fetchConstants())
             # logic.printConstants()    
             piece = board[move[0]]
@@ -136,7 +137,8 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
         bestEval = 100000
         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
         # print(logic.generateAllMoves(board, currentTurn))
-        for move in logic.generateAllMoves(board, currentTurn):
+        moves = eval.MoveOrder(board, logic.generateAllMoves(board, currentTurn), currentTurn, logic.blackAttackSquares, logic.whiteAttackSquares)
+        for move in moves:
             constants = deepcopy(logic.fetchConstants())
             piece = board[move[0]]
             # print("Board Stats before making move:", move, piece, "depth: ", depth)
@@ -197,22 +199,41 @@ while running:
                         currentTurn = mouseClickHandler(board, firstclick, index, prev_index)
                         firstclick = True
         else:
-            depth = 3
+            depth =3 
             starttime = time()
             # print("before computer move")
             # logic.displayGird(board)
             # logic.printConstants()
             move, bestEval = computerMakeMove(board, depth, currentTurn, depth, -10000, 10000)
+            if not move:
+                if currentTurn:
+                    if logic.isKingInCheck(logic.whiteKingLocation, currentTurn):
+                        graphics.show_winner(0)
+                        pygame.quit()
+                        sys.exit()
+                    else:
+                        graphics.show_winner(-1)
+                        pygame.quit()
+                        sys.exit()
+                else:
+                    if logic.isKingInCheck(logic.blackKingLocation, currentTurn):
+                        graphics.show_winner(1)
+                        pygame.quit()
+                        sys.exit()
+                    else:
+                        graphics.show_winner(-1)
+                        pygame.quit()
+                        sys.exit()
+                
             # print(move,bestEval)
-            # if (bestEval > 15000):
-            #     graphics.show_winner(1)
-            #     pygame.quit()
-            #     sys.exit()
-            # elif (bestEval < -15000):
-            #     graphics.show_winner(0)
-            #     pygame.quit()
-            #     sys.exit()
             logic.makeMove(board, move)
+            if (bestEval > 15000) and logic.generateAllMoves(board, False):
+                graphics.show_winner(1)
+                pygame.quit()
+            elif (bestEval < -15000) and logic.generateAllMoves(board, True):
+                graphics.show_winner(0)
+                pygame.quit()
+                sys.exit()
             print("Time taken by computer:-", time()-starttime)
             graphics.generateBoard(board, screen)
             # printCompStats(board, move[1], move[0])

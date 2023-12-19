@@ -146,11 +146,11 @@ def show_winner(result):
     root = tk.Tk()
     
     if result == 0:
-        label = tk.Label(root, text="Black won", font=("Arial", 18))
+        label = tk.Label(root, text="BLACK WINGS BY CHECKMATE", font=("Arial", 18))
     elif result == 1:
-        label = tk.Label(root, text="White won", font=("Arial", 18))
+        label = tk.Label(root, text="WHITE WINS BY CHECKMATE", font=("Arial", 18))
     else:
-        label = tk.Label(root, text="Invalid input", font=("Arial", 18))
+        label = tk.Label(root, text="DRAW BY STALEMATE", font=("Arial", 18))
     
     label.pack(padx=20, pady=20)
     root.mainloop()
