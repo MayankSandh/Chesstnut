@@ -202,11 +202,14 @@ def readFen(fen):
         else:
             continue  # Ignore unexpected characters
     
-    for move in generateAttackSquares(board, 0):
-        blackAttackSquares[move[1]]+=1
-    for move in generateAttackSquares(board, 1):
-        whiteAttackSquares[move[1]]+=1
-
+    # for move in generateAttackSquares(board, 0):
+    #     blackAttackSquares[move[1]]+=1
+    # for move in generateAttackSquares(board, 1):
+    #     whiteAttackSquares[move[1]]+=1
+    for black in blackPiecesLocation:
+        updateAttackSquares(board, black)
+    for white in whitePiecesLocation:
+        updateAttackSquares(board, white)
     if (not ME):
         board = board[::-1]
     return board
@@ -1148,7 +1151,7 @@ def KingPinHandler(board, index, currentTurn):
                                 pinnedPieceList.append(pinnedIndex)
                                 if isQueen(board[pinnedIndex]) or isBishop(board[pinnedIndex]):
                                     pinnedMoves.append([pinnedIndex, targetSquare])
-                                if isPawn(board[pinnedIndex]) and ((pinnedIndex - 7 == targetSquare) or (pinnedIndex - 9 == targetSquare)):
+                                if isPawn(board[pinnedIndex]) and ((pinnedIndex + 7 == targetSquare) or (pinnedIndex + 9 == targetSquare)):
                                     pinnedMoves.append([pinnedIndex, targetSquare])
                                 pinnedIndex = -1
                         break
@@ -1316,7 +1319,7 @@ def generateSlidingMovesInAttack(board, index, currentTurn):
             move_list.append([index, targetSquare])
             if pieceOnTargetSquare//7 == currentTurn:
                 break
-            if (pieceOnTargetSquare)//7 == (not currentTurn):
+            if ((pieceOnTargetSquare)//7 == (not currentTurn)) and (not isKing(pieceOnTargetSquare)):
                 break
     return move_list
 def removeAttackSquares(board, index):
@@ -1324,26 +1327,26 @@ def removeAttackSquares(board, index):
     piece =board[index]
     if isWhite(piece):
         if isSlidingPiece(piece):
-            for move in generateSlidingMoves(board, index, 1):
+            for move in generateSlidingMovesInAttack(board, index, 1):
                 whiteAttackSquares[move[1]]-=1
         elif isKnight(piece):
-            for move in generateKnightMoves(board, index, 1):
+            for move in generateKnightMovesInAttack(board, index, 1):
                 whiteAttackSquares[move[1]]-=1
         elif isKing(piece):
-            for move in generateKingMoves(board, index, 1):
+            for move in generateKingMovesInAttack(board, index, 1):
                 whiteAttackSquares[move[1]]-=1
         elif isPawn(piece):
             for move in pawnAttackSquares(board, index, 1):
                 whiteAttackSquares[move[1]]-=1
     elif isBlack(piece):
         if isSlidingPiece(piece):
-            for move in generateSlidingMoves(board, index, 0):
+            for move in generateSlidingMovesInAttack(board, index, 0):
                 blackAttackSquares[move[1]]-=1
         elif isKnight(piece):
-            for move in generateKnightMoves(board, index, 0):
+            for move in generateKnightMovesInAttack(board, index, 0):
                 blackAttackSquares[move[1]]-=1
         elif isKing(piece):
-            for move in generateKingMoves(board, index, 0):
+            for move in generateKingMovesInAttack(board, index, 0):
                 blackAttackSquares[move[1]]-=1
         elif isPawn(piece):
             for move in pawnAttackSquares(board, index, 0):
@@ -1492,7 +1495,7 @@ def unmakeMove(board, move, captured_piece, flag): # the move should be as it wa
         else:
             board[move[0]] = BlackPawn
         board[move[1]] = captured_piece
-        updatedPieceLocationCaptured(clicked_piece, [move[1], move[0]])
+        updatedPieceLocationCaptured(clicked_piece, [move[0], move[1]])
 
 def cancelRightCastelling(board, move):
     global hasWhiteKingMoved, hasBlackKingMoved, hasWhiteLeftRookMoved, hasBlackLeftRookMoved, hasWhiteRightRookMoved, hasBlackRightRookMoved

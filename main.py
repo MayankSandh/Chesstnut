@@ -7,13 +7,14 @@ from random import randint
 from time import time
 from copy import deepcopy
 from utils import eval, misc
-
+from collections import defaultdict
+TRANSPOSITION_TABLE = defaultdict(lambda: 0.1)
 
 # Constants
 
 screen = pygame.display.set_mode((graphics.WIDTH, graphics.HEIGHT))
 pygame.display.set_caption('Chess Board')
-
+misc.initZobrist()
 board = [-1]*64
 # example_fen = '4QB2/1k6/1Np5/3p4/2p1PN2/2r1pP2/5P2/K2n3q w - - 0 1'
 example_fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
@@ -89,13 +90,16 @@ def mouseClickHandler(board, firstclick, index, prev_index):
 
 def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
     if (depth == 0):
-        return eval.evaluateBoard(board)
+        val = eval.evaluateBoard(board)
+        # TRANSPOSITION_TABLE[misc.genZobrist(board)] = val
+        return val
     bestMove = list()
     if currentTurn:
         bestEval = -100000
         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
         # print(logic.generateAllMoves(board, currentTurn))
         moves = eval.MoveOrder(board, logic.generateAllMoves(board, currentTurn), currentTurn, logic.blackAttackSquares, logic.whiteAttackSquares)
+        print("reached here")
         for move in moves:
             constants = deepcopy(logic.fetchConstants())
             # logic.printConstants()    
@@ -105,7 +109,11 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
             capture, flag = logic.makeMove(board, move)
             # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
             # printStats(board)
-            val = computerMakeMove(board, depth-1, (not currentTurn), og_depth, alpha, beta)
+            val = TRANSPOSITION_TABLE[misc.genZobrist(board)]
+            if val == 0.1:
+                val = computerMakeMove(board, depth-1, (not currentTurn), og_depth, alpha, beta)
+                if depth == og_depth:
+                    TRANSPOSITION_TABLE[misc.genZobrist(board)] = val
 
             if val > bestEval:
                 bestMove = move
@@ -117,6 +125,8 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
                 break
             # print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
             # printStats(board)
+        if (depth == og_depth-1):
+            print("\n\tbest counter", bestMove, "cuurent Eval, ", bestEval, currentTurn)
     else:
         bestEval = 100000
         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
@@ -130,14 +140,17 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
             capture, flag = logic.makeMove(board, move)
             # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
             # printStats(board)
-            val = computerMakeMove(board, depth-1, (not currentTurn), og_depth, alpha, beta)
-            if depth == og_depth:
-                print(move, val)
+            val = TRANSPOSITION_TABLE[misc.genZobrist(board)]
+            if val == 0.1:
+                val = computerMakeMove(board, depth-1, (not currentTurn), og_depth, alpha, beta)
+                if depth == og_depth:
+                    TRANSPOSITION_TABLE[misc.genZobrist(board)] = val
+            #     print(move, val)
             if val < bestEval:
                 bestMove = move
                 bestEval = val
-                # if (depth == og_depth):
-                #     print("best move", bestMove, "bestEval, ", bestEval, currentTurn)
+            if (depth == og_depth):
+                print("current move", move, "cuurent Eval, ", val, currentTurn)
             logic.unmakeMove(board, move, capture, flag)
             logic.restoreConstants(constants)
             beta = min(beta, val)
@@ -160,8 +173,8 @@ prev_index = 0
 firstclick = True
 computer_depth = 3
 starttime = time()
-automatic = False
-# myMoves = misc.getMyMovesOld("22_12_202313_41_04.txt")
+automatic = True
+myMoves = misc.getMyMovesOld("22_12_2023_15_46_38.txt")
 myMoveIndex = 0
 
 while running:
@@ -201,7 +214,8 @@ while running:
                         else:
                             currentTurn = True
                     elif event.key == pygame.K_BACKSPACE:
-                        print("THE CURRENT EVAL CALCULATED BY EVAUL FUNCTION IS:", eval.evaluateBoard(board)/100)   
+                        print("THE CURRENT EVAL CALCULATED BY EVAUL FUNCTION IS:", eval.evaluateBoard(board)/100) 
+                        logic.printConstants()  
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         clicked_pos = graphics.getSquareFromClick(pygame.mouse.get_pos())

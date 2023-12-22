@@ -266,5 +266,5 @@ def MoveOrder(board, moves, currentTurn, blackAttackSquares, whiteAttackSquares)
             if move[1] in whiteAttackSquares:
                 score-=getPieceValue(clicked_piece)
         moveScores.append(score)
-    sorted_moves = [pair[0] for pair in sorted(list(zip(moves, moveScores)), key=lambda x: x[1])]
+    sorted_moves = [pair[0] for pair in sorted(list(zip(moves, moveScores)), key=lambda x: x[1], reverse=True)]
     return sorted_moves
