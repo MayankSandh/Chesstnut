@@ -7,8 +7,7 @@ else:
 
 currentTurn = True
 
-lastMoveOfBlack = [0, 0]
-lastMoveOfWhite = [0, 0]
+lastMove = list()
 blackKingLocation = -1
 whiteKingLocation = -1
 blackPiecesLocation = list()
@@ -45,6 +44,9 @@ def printConstants():
     print("white attack squares:- ", displayGird(whiteAttackSquares))
     print("black king location:- ", blackKingLocation)
     print("white king location:- ", whiteKingLocation)
+def updateLastMove(move):
+    global lastMove
+    lastMove = move
 
 def changeKingStatus(piece_code):
     global hasWhiteKingMoved, hasBlackKingMoved
@@ -582,6 +584,7 @@ def generatePawnMoves(board, index, currentTurn):
                 if squareWithinBounds(index, direction):
                     if board[targetSquare]//7 == (not currentTurn):
                         move_list.append([index, targetSquare])
+                
         else:
             directions = [8, 16]
             if board[directions[0]+index]//7 == -1:
@@ -1579,3 +1582,13 @@ def printStats(board):
     displayGird(board)
     printConstants()
 
+def generateCaptureMoves(board, currentTurn):
+    captureMoves = list()
+    if currentTurn:
+        for move in generateAllMoves(board, currentTurn):
+            if move[1] in blackPiecesLocation:
+                captureMoves.append(move)
+    else:
+        for move in generateAllMoves(board, currentTurn):
+            if move[1] in whitePiecesLocation:
+                captureMoves.append(move)

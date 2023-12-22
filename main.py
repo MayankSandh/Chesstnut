@@ -25,7 +25,42 @@ board = logic.readFen(example_fen)
 # logic.displayGird(logic.whiteAttackSquares)
 # board[9] = logic.WhitePawn
 
+def searchCaptures(board, alpha, beta, currentTurn): # might include checks in here
+    captureMoves = list()
+    moves = eval.MoveOrder(board, logic.generateCaptureMoves(board, currentTurn), currentTurn, logic.blackAttackSquares, logic.whiteAttackSquares)
+    if not moves:
+        return eval.evaluateBoard(board)
+    if currentTurn:
+        for move in moves:
+            bestEval = -100000
+            constants = deepcopy(logic.fetchConstants())
+            capture, flag = logic.makeMove(board, move)
+            val = searchCaptures(board, alpha, beta, (not currentTurn))
+            if val>bestEval:
+                bestEval = val
+            logic.unmakeMove(board, move, capture, flag)
+            logic.restoreConstants(constants)
+            alpha = max(alpha, val)
+            if beta<=alpha:
+                break
+    else:
+        for move in moves:
+            bestEval = 100000
+            constants = deepcopy(logic.fetchConstants())
+            capture, flag = logic.makeMove(board, move)
+            val = searchCaptures(board, alpha, beta, (not currentTurn))
+            if val<bestEval:
+                bestEval = val
+            logic.unmakeMove(board, move, capture, flag)
+            logic.restoreConstants(constants)
+            beta = min(beta, val)
+            if beta<=alpha:
+                break
+    return bestEval
+            
+        
 
+    
 
 def mouseClickHandler(board, firstclick, index, prev_index):
     if firstclick:
@@ -41,6 +76,7 @@ def mouseClickHandler(board, firstclick, index, prev_index):
             mouseClickHandler(board, True, index, prev_index)
         else:
             if [prev_index, index] in logic.legalMoves(board, prev_index, currentTurn):
+                logic.updateLastMove([prev_index, index])
                 captured_piece, flag = logic.makeMove(board, [prev_index, index])
                 graphics.generateBoard(board, screen)
                 # castling constants handler
@@ -90,7 +126,7 @@ def mouseClickHandler(board, firstclick, index, prev_index):
 
 def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
     if (depth == 0):
-        val = eval.evaluateBoard(board)
+        val = searchCaptures(board, -10000, 10000, currentTurn)
         # TRANSPOSITION_TABLE[misc.genZobrist(board)] = val
         return val
     bestMove = list()
@@ -99,7 +135,6 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
         # print(logic.generateAllMoves(board, currentTurn))
         moves = eval.MoveOrder(board, logic.generateAllMoves(board, currentTurn), currentTurn, logic.blackAttackSquares, logic.whiteAttackSquares)
-        print("reached here")
         for move in moves:
             constants = deepcopy(logic.fetchConstants())
             # logic.printConstants()    
@@ -125,8 +160,6 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
                 break
             # print("\nBoard Stats after unmaking move:", move, piece, "depth: ", depth)
             # printStats(board)
-        if (depth == og_depth-1):
-            print("\n\tbest counter", bestMove, "cuurent Eval, ", bestEval, currentTurn)
     else:
         bestEval = 100000
         # print("the moves calculated for depth:,", depth, "and currentTurn", currentTurn, "are:-")
@@ -149,8 +182,6 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
             if val < bestEval:
                 bestMove = move
                 bestEval = val
-            if (depth == og_depth):
-                print("current move", move, "cuurent Eval, ", val, currentTurn)
             logic.unmakeMove(board, move, capture, flag)
             logic.restoreConstants(constants)
             beta = min(beta, val)
@@ -173,7 +204,7 @@ prev_index = 0
 firstclick = True
 computer_depth = 3
 starttime = time()
-automatic = True
+automatic = False
 myMoves = misc.getMyMovesOld("22_12_2023_15_46_38.txt")
 myMoveIndex = 0
 
@@ -255,6 +286,7 @@ while running:
                 
             # print(move,bestEval)
             logic.makeMove(board, move)
+            logic.updateLastMove(move)
             if (bestEval > 15000) and logic.generateAllMoves(board, False):
                 graphics.show_winner(1)
                 pygame.quit()
