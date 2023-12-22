@@ -1556,3 +1556,23 @@ def displayGird(board):
                 print("",piece, end = " ")
         print()
 
+def printMyStats(board, index, prev_index):
+    print("\n--------------------MADE MY MOVE ------------------------")
+    print("piece_moved is: ", board[index])
+    print("move played:", [prev_index, index])
+    displayGird(board)
+    print("constants status:, ")
+    printConstants()
+    print("----------------------------------------------------------")
+def printCompStats(board, index, prev_index):
+    print("\n--------------------COMPUTER MOVE ------------------------")
+    print("piece_moved is: ", board[index])
+    print("move played:", [prev_index, index])
+    displayGird(board)
+    print("constants status:, ")
+    printConstants()
+    print("----------------------------------------------------------")
+def printStats(board):
+    displayGird(board)
+    printConstants()
+

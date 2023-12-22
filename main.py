@@ -24,25 +24,7 @@ board = logic.readFen(example_fen)
 # logic.displayGird(logic.whiteAttackSquares)
 # board[9] = logic.WhitePawn
 
-def printMyStats(board, index, prev_index):
-    print("\n--------------------MADE MY MOVE ------------------------")
-    print("piece_moved is: ", board[index])
-    print("move played:", [prev_index, index])
-    logic.displayGird(board)
-    print("constants status:, ")
-    logic.printConstants()
-    print("----------------------------------------------------------")
-def printCompStats(board, index, prev_index):
-    print("\n--------------------COMPUTER MOVE ------------------------")
-    print("piece_moved is: ", board[index])
-    print("move played:", [prev_index, index])
-    logic.displayGird(board)
-    print("constants status:, ")
-    logic.printConstants()
-    print("----------------------------------------------------------")
-def printStats(board):
-    logic.displayGird(board)
-    logic.printConstants()
+
 
 def mouseClickHandler(board, firstclick, index, prev_index):
     if firstclick:
@@ -91,7 +73,8 @@ def mouseClickHandler(board, firstclick, index, prev_index):
                                 elif index%8 == 7 and not logic.hasWhiteRightRookMoved:
                                     logic.changeRightRookStatus(captured_piece)
                 # printMyStafts(board, index, prev_index)
-                misc.write_to_file("ME: "+str(board[index]) +" --> "+ str([(prev_index//8, prev_index%8), (index//8, index%8)])+"\n")
+                if not automatic:
+                    misc.write_to_file("ME: "+str(board[index]) +" --> "+ str([prev_index//8, prev_index%8])+"="+str([index//8, index%8])+"\n")
                 
                 if currentTurn:
                     return False
@@ -175,34 +158,62 @@ currentTurn = True
 firstclick = 1
 prev_index = 0
 firstclick = True
+computer_depth = 3
 starttime = time()
+automatic = False
+# myMoves = misc.getMyMovesOld("22_12_202313_41_04.txt")
+myMoveIndex = 0
 
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if not (currentTurn ^ logic.ME):
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if event.button == 1:
-                    clicked_pos = graphics.getSquareFromClick(pygame.mouse.get_pos())
-                    row, col = clicked_pos
-                    index = row*8+col
-                    if firstclick:
-                        if board[index]//7 != currentTurn:
-                            continue
-                        prev_index = index
-                        mouseClickHandler(board, firstclick, index, prev_index)
-                        firstclick = False
-                        
-                    else:
-                        if board[index]//7 == currentTurn:
+            if not automatic:
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        clicked_pos = graphics.getSquareFromClick(pygame.mouse.get_pos())
+                        row, col = clicked_pos
+                        index = row*8+col
+                        if firstclick:
+                            if board[index]//7 != currentTurn:
+                                continue
                             prev_index = index
                             mouseClickHandler(board, firstclick, index, prev_index)
-                            continue
-                        currentTurn = mouseClickHandler(board, firstclick, index, prev_index)
-                        firstclick = True
+                            firstclick = False
+                            
+                        else:
+                            if board[index]//7 == currentTurn:
+                                prev_index = index
+                                mouseClickHandler(board, firstclick, index, prev_index)
+                                continue
+                            currentTurn = mouseClickHandler(board, firstclick, index, prev_index)
+                            firstclick = True
+            else:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
+                        move = myMoves[myMoveIndex]
+                        logic.makeMove(board, move)
+                        graphics.generateBoard(board, screen)
+                        myMoveIndex+=1
+                        if currentTurn:
+                            currentTurn = False
+                        else:
+                            currentTurn = True
+                    elif event.key == pygame.K_BACKSPACE:
+                        print("THE CURRENT EVAL CALCULATED BY EVAUL FUNCTION IS:", eval.evaluateBoard(board)/100)   
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        clicked_pos = graphics.getSquareFromClick(pygame.mouse.get_pos())
+                        row, col = clicked_pos
+                        index = row*8+col
+                        if firstclick:
+                            if board[index]//7 != currentTurn:
+                                continue
+                            prev_index = index
+                            mouseClickHandler(board, firstclick, index, prev_index)
         else:
-            depth =3 
+            depth = computer_depth
             starttime = time()
             # print("before computer move")
             # logic.displayGird(board)
@@ -240,7 +251,8 @@ while running:
             print("Time taken by computer:-", time()-starttime)
             graphics.generateBoard(board, screen)
             # printCompStats(board, move[1], move[0])
-            misc.write_to_file("COMP: "+str(board[move[1]]) +" --> "+ str([(move[0]//8, move[0]%8), (move[1]//8, move[1]%8)])+"\n")
+            if not automatic:
+                misc.write_to_file("COMP: "+str(board[move[1]]) +" --> "+ str([(move[0]//8, move[0]%8), (move[1]//8, move[1]%8)])+"\n")
             if currentTurn:
                 currentTurn = False
             else:
