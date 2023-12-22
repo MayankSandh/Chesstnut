@@ -73,7 +73,7 @@ pawn_heatmap = [
     50, 50, 50, 50, 50, 50, 50, 50,
     10, 10, 20, 30, 30, 20, 10, 10,
     5,  5, 10, 25, 25, 10,  5,  5,
-    0,  0,  0, 20, 20,  0,  0,  0,
+    0,  0,  0, 40, 40,  0,  0,  0,
     5, -5,-10,  0,  0,-10, -5,  5,
     5, 10, 10,-20,-20, 10, 10,  5,
     0,  0,  0,  0,  0,  0,  0,  0
@@ -82,7 +82,7 @@ pawn_heatmap_opponent = [
     0,  0,  0,  0,  0,  0,  0,  0,
     5, 10, 10,-20,-20, 10, 10,  5,
     5, -5,-10,  0,  0,-10, -5,  5,
-    0,  0,  0, 20, 20,  0,  0,  0,
+    0,  0,  0, 40, 40,  0,  0,  0,
     5,  5, 10, 25, 25, 10,  5,  5,
     10, 10, 20, 30, 30, 20, 10, 10,
     50, 50, 50, 50, 50, 50, 50, 50,
@@ -229,6 +229,8 @@ def evaluateBoard(board):
                 eval-=(BishopValue+bishop_heatmap_opponent[location])
             elif isKnight(black_piece):
                 eval-=(KnightValue+knight_heatmap_opponent[location])
+            elif isRook(black_piece):
+                eval-=(RookValue+rook_heatmap_opponent[location])
         elif isWhite(board[location]):
                 white_piece = board[location]
                 if isKing(white_piece):
@@ -241,8 +243,9 @@ def evaluateBoard(board):
                     eval+=(BishopValue+bishop_heatmap[location])
                 elif isKnight(white_piece):
                     eval+=(KnightValue+knight_heatmap[location])
+                elif isRook(white_piece):
+                    eval+=(RookValue+rook_heatmap[location])
     return eval
-
 
 def MoveOrder(board, moves, currentTurn, blackAttackSquares, whiteAttackSquares):
     if not moves:

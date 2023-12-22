@@ -123,6 +123,7 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
             # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
             # printStats(board)
             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth, alpha, beta)
+
             if val > bestEval:
                 bestMove = move
                 bestEval = val
@@ -147,6 +148,8 @@ def computerMakeMove(board, depth, currentTurn, og_depth, alpha, beta):
             # print("\nBoard Stats after making move:", move, piece, "depth: ", depth)
             # printStats(board)
             val = computerMakeMove(board, depth-1, (not currentTurn), og_depth, alpha, beta)
+            if depth == og_depth:
+                print(move, val)
             if val < bestEval:
                 bestMove = move
                 bestEval = val
