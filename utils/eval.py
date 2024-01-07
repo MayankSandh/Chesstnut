@@ -268,3 +268,30 @@ def MoveOrder(board, moves, currentTurn, blackAttackSquares, whiteAttackSquares)
         moveScores.append(score)
     sorted_moves = [pair[0] for pair in sorted(list(zip(moves, moveScores)), key=lambda x: x[1], reverse=True)]
     return sorted_moves
+
+def KingDistanceValue(currentTurn, whiteKing, blackKing):
+    val = 0
+    if currentTurn:
+        myKing = whiteKing
+        oppKing = blackKing
+    else:
+        myKing = blackKing
+        oppKing = whiteKing
+    
+    kingsDistance = abs(myKing//8 - oppKing//8) + abs(myKing%8 - oppKing%8)
+    val = 16 - kingsDistance
+    return val
+
+def endgameWeight(board, currentTurn, blackPiecesLocation, whitePiecesLocation):
+    if currentTurn:
+        val = 24000
+        for piece in whitePiecesLocation:
+            val-=getPieceValue(board[piece])
+        val/=240
+    else:
+        val = 24000
+        for piece in blackPiecesLocation:
+            val-=getPieceValue(board[piece])
+        val/=240
+    return val
+        
